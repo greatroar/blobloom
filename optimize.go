@@ -96,7 +96,7 @@ var correctC = []byte{
 	25, 26, 28, 30, 32, 35, 38, 40, 44, 48, 51, 58, 64, 74, 90,
 }
 
-// FPRate computes an estimate of the false positive rate of Bloom filter
+// FPRate computes an estimate of the false positive rate of a Bloom filter
 // after nkeys distinct keys have been added.
 func FPRate(nkeys, nbits, nhashes int) float64 {
 	c := float64(nbits) / float64(nkeys)
@@ -121,7 +121,7 @@ func (f *Filter) FPRate(nkeys int) float64 {
 	return FPRate(nkeys, f.NBits(), f.k)
 }
 
-// Log of the frp of single block.
+// Log of the FPR of single block.
 func logFprBlock(c, k float64) float64 {
 	return k * math.Log1p(-math.Exp(-k/c))
 }
