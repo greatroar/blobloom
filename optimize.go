@@ -32,6 +32,9 @@ func NewOptimized(cfg Config) *Filter {
 
 // Optimize returns numbers of keys and hash functions that achieve the
 // desired false positive described by cfg.
+//
+// The estimated number of bits is imprecise for false positives rates below
+// ca. 1e-15.
 func Optimize(cfg Config) (nbits, nhashes int) {
 	var (
 		n = float64(cfg.NKeys)

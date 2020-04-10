@@ -4,13 +4,32 @@
 
 // Package blobloom implements blocked Bloom filters.
 //
-// Blocked Bloom filters are an efficient approximate set data structure.
-// Compared to standard Bloom filters, they use the CPU cache more efficiently.
-// They are described in detail in a 2010 paper by Putze, Sanders and Singler,
-// http://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
+// Blocked Bloom filters are approximate set data structures: if a key has
+// been added to the filter, a lookup of that returns true, but if the key
+// has not been added, there is a non-zero chance that the lookup still
+// returns true (a false positive).
+//
+// In this package, keys are represented exclusively as hashes. Client code
+// is responsible for supplying two 32-bit hash values for a key. No hash
+// function is provided, since the "right" hash function for an application
+// depends on the data the application processes.
+//
+// Compared to standard Bloom filters, blocked Bloom filters use the CPU
+// cache more efficiently. A blocked Bloom filter is an array of ordinary
+// Bloom filters of fixed size BlockBits (the blocks). The first hash of a
+// key selects the block to use.
+//
+// To achieve the same false positive rate (FPR) as a standard Bloom filter,
+// a blocked Bloom filter requires more memory. For an FPR of at most 2e-6
+// (two in a million), its uses 20% more memory. At 1e-10, the space required
+// is double that of standard Bloom filter.
+//
+// For more details, see the 2010 paper by Putze, Sanders and Singler,
+// https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
-// BlockBits is the number of bits per block.
+// BlockBits is the number of bits per block and the minimum number of bits
+// in a Filter.
 //
 // The value of this constant is chosen to match the L1 cache line size
 // of popular architectures (386, amd64, arm64).
@@ -25,14 +44,14 @@ type Filter struct {
 	k int     // Number of hash functions required.
 }
 
-// New constructs a Bloom filter of size nbits that uses nhashes hash functions.
+// New constructs a Bloom filter with given numbers of bits and hash functions.
 //
-// nhashes must be at least two. The client passes the first two hashes for
-// every key to Add and Has, which synthesize all following hashes from the
-// two values passed in.
+// The number of hash functions uses is silently increased to two.
+// The client passes the first two hashes for every key to Add and Has,
+// which synthesize all following hashes from the two values passed in.
 func New(nbits, nhashes int) *Filter {
 	if nbits < 1 {
-		panic("need at least one bit and two hash functions")
+		panic("need at least one bit")
 	}
 	if nhashes < 2 {
 		nhashes = 2
@@ -100,6 +119,7 @@ func (f *Filter) Has64(h uint64) bool {
 	return f.Has(uint32(h>>32), uint32(h))
 }
 
+// NBits returns the number of bits of f.
 func (f *Filter) NBits() int {
 	return BlockBits * len(f.b)
 }
