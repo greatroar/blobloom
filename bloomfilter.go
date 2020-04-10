@@ -109,15 +109,15 @@ const (
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
 type block [blockSize / 8]uint64
 
+// getbit reports whether bit (i modulo blockBits) is set.
 func (b *block) getbit(i uint32) bool {
 	const n = uint32(len(*b))
 	x := (*b)[(i/64)%n] & (1 << (i % 64))
 	return x != 0
 }
 
-// setbit sets the i'th bit of b to 1.
+// setbit sets bit (i modulo blockBits) of b.
 func (b *block) setbit(i uint32) {
 	const n = uint32(len(*b))
-	const mask = n - 1
-	(*b)[(i/64)&mask] |= 1 << (i & 63)
+	(*b)[(i/64)%n] |= 1 << (i % 64)
 }
