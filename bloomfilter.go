@@ -46,12 +46,15 @@ type Filter struct {
 
 // New constructs a Bloom filter with given numbers of bits and hash functions.
 //
+// The number of bits should be at least BlockBits; smaller values are silently
+// increased.
+//
 // The number of hash functions uses is silently increased to two.
 // The client passes the first two hashes for every key to Add and Has,
 // which synthesize all following hashes from the two values passed in.
 func New(nbits, nhashes int) *Filter {
 	if nbits < 1 {
-		panic("need at least one bit")
+		nbits = BlockBits
 	}
 	if nhashes < 2 {
 		nhashes = 2

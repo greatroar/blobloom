@@ -16,3 +16,25 @@ func TestFPRate(t *testing.T) {
 	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 6), 5e-4, "")
 	assert.InDeltaf(t, 0.000194, FPRate(1, 20, 14), 3e-5, "")
 }
+
+func TestNewOptimizedMaxFPR(t *testing.T) {
+	f := NewOptimized(Config{
+		FPRate: 1,
+		NKeys:  0,
+	})
+	assert.Equal(t, BlockBits, f.NBits())
+}
+
+func TestOptimizeOneBitOneHash(t *testing.T) {
+	// This configuration produces one hash function.
+	nbits, nhashes := Optimize(Config{
+		FPRate:  .99,
+		MaxBits: 1,
+		NKeys:   1,
+	})
+	assert.Equal(t, 1, nhashes)
+
+	f := New(nbits, nhashes)
+	assert.Equal(t, BlockBits, f.NBits())
+	assert.Equal(t, 2, f.k)
+}
