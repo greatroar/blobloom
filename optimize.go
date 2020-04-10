@@ -56,19 +56,19 @@ func Optimize(cfg Config) (nbits, nhashes int) {
 	}
 	nbits = int(c * n)
 
-	// Round up to a multiple of blockBits.
-	if nbits%blockBits != 0 {
-		nbits += blockBits - nbits%blockBits
+	// Round up to a multiple of BlockBits.
+	if nbits%BlockBits != 0 {
+		nbits += BlockBits - nbits%BlockBits
 	}
 
-	maxbits := (1 << 32) * blockBits
+	maxbits := (1 << 32) * BlockBits
 	if cfg.MaxBits != 0 && cfg.MaxBits < maxbits {
 		maxbits = cfg.MaxBits
 	}
 	if nbits > maxbits {
 		nbits = maxbits
-		// Round down to a multiple of blockBits.
-		nbits -= nbits % blockBits
+		// Round down to a multiple of BlockBits.
+		nbits -= nbits % BlockBits
 	}
 
 	// The corresponding optimal number of hash functions is k = c * log(2).
@@ -103,7 +103,7 @@ func FPRate(nkeys, nbits, nhashes int) float64 {
 	var sum float64
 	for i := float64(0); ; i++ {
 		prev := sum
-		sum += math.Exp(logPoisson(blockBits/c, i) + logFprBlock(blockBits/i, k))
+		sum += math.Exp(logPoisson(BlockBits/c, i) + logFprBlock(BlockBits/i, k))
 		if sum/prev-1 < 1e-8 {
 			break
 		}

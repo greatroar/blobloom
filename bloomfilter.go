@@ -10,9 +10,14 @@
 // http://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
-const (
-	MaxBits = (1 << 32) * blockBits
-)
+// BlockBits is the number of bits per block.
+//
+// The value of this constant is chosen to match the L1 cache line size
+// of popular architectures (386, amd64, arm64).
+const BlockBits = 512
+
+// MaxBits is the maximum number of bits supported by a Filter (256GiB).
+const MaxBits = BlockBits << 32
 
 // A Filter is a blocked Bloom filter.
 type Filter struct {
@@ -36,13 +41,13 @@ func New(nbits, nhashes int) *Filter {
 		panic("nbits exceeds MaxBits")
 	}
 
-	// Round nbits up to a multiple of blockBits.
-	if nbits%blockBits != 0 {
-		nbits += blockBits - nbits%blockBits
+	// Round nbits up to a multiple of BlockBits.
+	if nbits%BlockBits != 0 {
+		nbits += BlockBits - nbits%BlockBits
 	}
 
 	return &Filter{
-		b: make([]block, nbits/blockBits),
+		b: make([]block, nbits/BlockBits),
 		k: nhashes,
 	}
 }
@@ -96,27 +101,22 @@ func (f *Filter) Has64(h uint64) bool {
 }
 
 func (f *Filter) NBits() int {
-	return blockBits * len(f.b)
+	return BlockBits * len(f.b)
 }
 
-const (
-	// Block size in bytes.
-	// This is hardcoded to the L1 cache line size of amd64 and arm64.
-	blockSize = 64
-	blockBits = 8 * blockSize
-)
+const blockSize = BlockBits / 64
 
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
 type block [blockSize / 8]uint64
 
-// getbit reports whether bit (i modulo blockBits) is set.
+// getbit reports whether bit (i modulo BlockBits) is set.
 func (b *block) getbit(i uint32) bool {
 	const n = uint32(len(*b))
 	x := (*b)[(i/64)%n] & (1 << (i % 64))
 	return x != 0
 }
 
-// setbit sets bit (i modulo blockBits) of b.
+// setbit sets bit (i modulo BlockBits) of b.
 func (b *block) setbit(i uint32) {
 	const n = uint32(len(*b))
 	(*b)[(i/64)%n] |= 1 << (i % 64)
