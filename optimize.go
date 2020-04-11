@@ -121,7 +121,7 @@ func (f *Filter) FPRate(nkeys int) float64 {
 	return FPRate(nkeys, f.NBits(), f.k)
 }
 
-// Log of the FPR of single block.
+// Log of the FPR of a single block.
 func logFprBlock(c, k float64) float64 {
 	return k * math.Log1p(-math.Exp(-k/c))
 }
