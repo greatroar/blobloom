@@ -130,7 +130,7 @@ func (f *Filter) NBits() int {
 const blockSize = BlockBits / 64
 
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
-type block [blockSize / 8]uint64
+type block [blockSize]uint64
 
 // getbit reports whether bit (i modulo BlockBits) is set.
 func (b *block) getbit(i uint32) bool {

@@ -42,3 +42,53 @@ func TestSimple(t *testing.T) {
 		}
 	}
 }
+
+func TestUse(t *testing.T) {
+	const n = 100000
+
+	// For FPR = .01, n = 100000, the optimal number of bits is 958505.84
+	// for a standard Bloom filter.
+	f := NewOptimized(Config{
+		FPRate: .01,
+		NKeys:  n,
+	})
+	if f.NBits() < 958506 {
+		t.Fatalf("bloom filter with %d bits too small", f.NBits())
+	}
+
+	t.Logf("k = %d; m/n = %d/%d = %.3f",
+		f.k, f.NBits(), n, float64(f.NBits())/n)
+
+	// Generate random hash values for n keys. Pretend the keys are all distinct,
+	// even if the hashes are not.
+	// Assume that 100k random SHA-256 values are all distinct.
+	r := rand.New(rand.NewSource(0xb1007))
+	hashes := make([]uint64, n)
+	for i := range hashes {
+		hashes[i] = r.Uint64()
+	}
+
+	for _, h := range hashes {
+		f.Add64(h)
+	}
+
+	for _, h := range hashes {
+		if !f.Has64(h) {
+			t.Errorf("%032x added to Bloom filter but not found", h)
+		}
+	}
+
+	// Generate some more random hashes to get a sense of the FPR.
+	// Pretend these represent unique keys, distinct from the ones we added.
+	const nTest = 10000
+	fp := 0
+	for i := 0; i < nTest; i++ {
+		if f.Has64(r.Uint64()) {
+			fp++
+		}
+	}
+
+	fpr := float64(fp) / nTest
+	assert.Less(t, fpr, .02)
+	t.Logf("FPR = %.5f\n", fpr)
+}
