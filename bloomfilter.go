@@ -77,8 +77,8 @@ func New(nbits, nhashes int) *Filter {
 // Add inserts a key with hash values h1 and h2 into f.
 //
 // The two hash values supplied are used to derive further values using the
-// construction described by Kirsch and Mitzenmacher,
-// https://www.eecs.harvard.edu/~michaelm/postscripts/rsa2008.pdf.
+// enhanced double hashing construction of Dillinger and Manolios,
+// https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *Filter) Add(h1, h2 uint32) {
 	_ = f.b[0] // Suppress divide by zero check.
 
@@ -87,10 +87,9 @@ func (f *Filter) Add(h1, h2 uint32) {
 
 	// Derive k hash functions from h1 and h2
 	// using the construction described by Kirsch and Mitzenmacher.
-	h := h1
-	for i := 1; i < f.k; i++ {
-		h += h2
-		b.setbit(h)
+	for i := 0; i+1 < f.k; i++ {
+		h1, h2 = doublehash(h1, h2, i)
+		b.setbit(h1)
 	}
 }
 
@@ -107,14 +106,21 @@ func (f *Filter) Has(h1, h2 uint32) bool {
 	i := h1 % uint32(len(f.b))
 	b := &f.b[i]
 
-	h := h1
-	for i := 1; i < f.k; i++ {
-		h += h2
-		if !b.getbit(h) {
+	for i := 0; i+1 < f.k; i++ {
+		h1, h2 = doublehash(h1, h2, i)
+		if !b.getbit(h1) {
 			return false
 		}
 	}
 	return true
+}
+
+// doublehash generates the hash values n1, n2 to use in iteration i of
+// enhanced double hashing from the values h1, h2 of the previous iteration.
+func doublehash(h1, h2 uint32, i int) (uint32, uint32) {
+	h1 = h1 + h2
+	h2 = h2 + uint32(i)
+	return h1, h2
 }
 
 // Has64 calls Has with the upper/lower 32 bits of h as h1/h2.

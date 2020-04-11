@@ -92,3 +92,12 @@ func TestUse(t *testing.T) {
 	assert.Less(t, fpr, .02)
 	t.Logf("FPR = %.5f\n", fpr)
 }
+
+func TestDoubleHashing(t *testing.T) {
+	var h1, h2 uint32 = 0, 0
+
+	for i := 0; i < 20; i++ {
+		h1, h2 = doublehash(h1, h2, i)
+		assert.NotEqual(t, h2, 0)
+	}
+}

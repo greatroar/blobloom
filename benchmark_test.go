@@ -8,6 +8,8 @@ import (
 	"encoding/binary"
 	"math/rand"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // These tests simulate a situation where SHA-256 hashes are stored in a
@@ -67,7 +69,13 @@ func benchmarkHasNegative(b *testing.B, nkeys int) {
 		}
 	}
 
-	b.Logf("false positive rate = %.3f%%", 100*float64(fp)/float64(b.N))
+	b.StopTimer()
+
+	if b.N < 10000 {
+		return // Don't test the FPR in the trial runs.
+	}
+	fpr := float64(fp) / float64(b.N)
+	assert.Less(b, fpr, .013)
 }
 
 func BenchmarkHasNegative1e5(b *testing.B) { benchmarkHasNegative(b, 1e5) }
