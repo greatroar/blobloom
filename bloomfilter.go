@@ -4,10 +4,11 @@
 
 // Package blobloom implements blocked Bloom filters.
 //
-// Blocked Bloom filters are approximate set data structures: if a key has
-// been added to the filter, a lookup of that returns true, but if the key
-// has not been added, there is a non-zero chance that the lookup still
-// returns true (a false positive).
+// Blocked Bloom filters are an approximate set data structure: if a key has
+// been added to a filter, a lookup of that key returns true, but if the key
+// has not been added, there is a non-zero probability that the lookup still
+// returns true (a false positive). It follows that, if the lookup for a key
+// returns false, that key has not been added to the filter.
 //
 // In this package, keys are represented exclusively as hashes. Client code
 // is responsible for supplying two 32-bit hash values for a key. No hash
@@ -21,7 +22,7 @@
 //
 // To achieve the same false positive rate (FPR) as a standard Bloom filter,
 // a blocked Bloom filter requires more memory. For an FPR of at most 2e-6
-// (two in a million), its uses 20% more memory. At 1e-10, the space required
+// (two in a million), it uses ~20% more memory. At 1e-10, the space required
 // is double that of standard Bloom filter.
 //
 // For more details, see the 2010 paper by Putze, Sanders and Singler,
@@ -35,8 +36,8 @@ package blobloom
 // of popular architectures (386, amd64, arm64).
 const BlockBits = 512
 
-// MaxBits is the maximum number of bits supported by a Filter (256GiB).
-const MaxBits = BlockBits << 32
+// MaxBits is the maximum number of bits supported by a Filter.
+const MaxBits = BlockBits << 32 // 256GiB.
 
 // A Filter is a blocked Bloom filter.
 type Filter struct {

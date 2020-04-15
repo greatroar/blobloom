@@ -6,22 +6,20 @@ package blobloom
 
 import "math"
 
-// // A Config holds parameters for Optimize or NewOptimized.
+// A Config holds parameters for Optimize or NewOptimized.
 type Config struct {
 	// Desired lower bound on the false positive rate when NKeys distinct
 	// keys have been inserted.
 	FPRate float64
 
-	// Maximum size of the Bloom filter in bits.
-	//
-	// Zero means no limit. Otherwise, MaxBits should be at least 512.
+	// Maximum size of the Bloom filter in bits. Zero means no limit.
 	MaxBits int
 
 	// Expected number of distinct keys.
 	NKeys int
 
-	// Trigger the "contains filtered or unexported fields" message
-	// for forward compatibility and force the caller to use named fields.
+	// Trigger the "contains filtered or unexported fields" message for
+	// forward compatibility and to force the caller to use named fields.
 	_ struct{}
 }
 

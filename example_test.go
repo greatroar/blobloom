@@ -51,9 +51,9 @@ func Example_fnv() {
 func ExampleOptimize() {
 	cfg := blobloom.Config{
 		// We want to insert a billion keys and get a false positive rate of
-		// one in a million, but we only have 2GiB (= 2^30 bytes) to spare.
+		// one in a million, but we only have 2GiB (= 2^31 bytes) to spare.
 		FPRate:  1e-6,
-		MaxBits: 8 << 31,
+		MaxBits: 8 * 1 << 31,
 		NKeys:   1e9,
 	}
 	nbits, nhashes := blobloom.Optimize(cfg)
