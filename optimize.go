@@ -102,10 +102,10 @@ func FPRate(nkeys, nbits uint64, nhashes int) float64 {
 
 	// Putze et al.'s Equation (3).
 	var sum float64
-	for i := float64(0); ; i++ {
-		prev := sum
-		sum += math.Exp(logPoisson(BlockBits/c, i) + logFprBlock(BlockBits/i, k))
-		if sum/prev-1 < 1e-8 {
+	for i := float64(1); ; i++ {
+		add := math.Exp(logPoisson(BlockBits/c, i) + logFprBlock(BlockBits/i, k))
+		sum += add
+		if add/sum < 1e-8 {
 			break
 		}
 	}
@@ -126,9 +126,6 @@ func logFprBlock(c, k float64) float64 {
 
 // Log of the Poisson distribution's pmf.
 func logPoisson(λ, k float64) float64 {
-	if k < 0 {
-		panic("negative k")
-	}
 	lg, _ := math.Lgamma(k + 1)
 	return k*math.Log(λ) - λ - lg
 }

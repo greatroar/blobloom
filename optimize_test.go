@@ -13,7 +13,7 @@ import (
 func TestFPRate(t *testing.T) {
 	// Examples from Putze et al.
 	// XXX The approximation isn't very precise.
-	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 6), 5e-4, "")
+	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 6), 3e-4, "")
 	assert.InDeltaf(t, 0.000194, FPRate(1, 20, 14), 3e-5, "")
 }
 
