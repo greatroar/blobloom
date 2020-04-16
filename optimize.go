@@ -13,10 +13,10 @@ type Config struct {
 	FPRate float64
 
 	// Maximum size of the Bloom filter in bits. Zero means no limit.
-	MaxBits int
+	MaxBits uint64
 
 	// Expected number of distinct keys.
-	NKeys int
+	NKeys uint64
 
 	// Trigger the "contains filtered or unexported fields" message for
 	// forward compatibility and to force the caller to use named fields.
@@ -33,7 +33,7 @@ func NewOptimized(cfg Config) *Filter {
 //
 // The estimated number of bits is imprecise for false positives rates below
 // ca. 1e-15.
-func Optimize(cfg Config) (nbits, nhashes int) {
+func Optimize(cfg Config) (nbits uint64, nhashes int) {
 	var (
 		n = float64(cfg.NKeys)
 		p = cfg.FPRate
@@ -55,14 +55,14 @@ func Optimize(cfg Config) (nbits, nhashes int) {
 		// We can't achieve the desired FPR. Just triple the number of bits.
 		c *= 3
 	}
-	nbits = int(c * n)
+	nbits = uint64(c * n)
 
 	// Round up to a multiple of BlockBits.
 	if nbits%BlockBits != 0 {
 		nbits += BlockBits - nbits%BlockBits
 	}
 
-	maxbits := (1 << 32) * BlockBits
+	maxbits := uint64(1<<32) * BlockBits
 	if cfg.MaxBits != 0 && cfg.MaxBits < maxbits {
 		maxbits = cfg.MaxBits
 	}
@@ -96,7 +96,7 @@ var correctC = []byte{
 
 // FPRate computes an estimate of the false positive rate of a Bloom filter
 // after nkeys distinct keys have been added.
-func FPRate(nkeys, nbits, nhashes int) float64 {
+func FPRate(nkeys, nbits uint64, nhashes int) float64 {
 	c := float64(nbits) / float64(nkeys)
 	k := float64(nhashes)
 
@@ -115,7 +115,7 @@ func FPRate(nkeys, nbits, nhashes int) float64 {
 
 // FPRate computes an estimate of f's false positive rate after nkeys distinct
 // keys have been added.
-func (f *Filter) FPRate(nkeys int) float64 {
+func (f *Filter) FPRate(nkeys uint64) float64 {
 	return FPRate(nkeys, f.NBits(), f.k)
 }
 

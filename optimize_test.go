@@ -22,12 +22,12 @@ func TestNewOptimizedMaxFPR(t *testing.T) {
 		FPRate: 1,
 		NKeys:  0,
 	})
-	assert.Equal(t, BlockBits, f.NBits())
+	assert.Equal(t, uint64(BlockBits), f.NBits())
 }
 
 func TestMaxBits(t *testing.T) {
 	for _, c := range []struct {
-		want, expect int
+		want, expect uint64
 	}{
 		{1, BlockBits},
 		{BlockBits - 1, BlockBits},
@@ -45,7 +45,7 @@ func TestMaxBits(t *testing.T) {
 		})
 		// Optimize should round down to multiple of BlockBits.
 		assert.LessOrEqual(t, nbits, c.expect)
-		assert.Equal(t, 0, nbits%BlockBits)
+		assert.Equal(t, uint64(0), nbits%BlockBits)
 
 		// New should correct cases < BlockBits.
 		f := New(nbits, nhashes)
@@ -63,6 +63,6 @@ func TestOptimizeOneBitOneHash(t *testing.T) {
 	assert.Equal(t, 1, nhashes)
 
 	f := New(nbits, nhashes)
-	assert.Equal(t, BlockBits, f.NBits())
+	assert.Equal(t, uint64(BlockBits), f.NBits())
 	assert.Equal(t, 2, f.k)
 }

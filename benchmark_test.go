@@ -18,7 +18,7 @@ import (
 
 const sha256Size = 32
 
-func benchmarkAdd(b *testing.B, nkeys int) {
+func benchmarkAdd(b *testing.B, nkeys uint64) {
 	hash := make([]byte, nkeys*sha256Size)
 
 	r := rand.New(rand.NewSource(98621))
@@ -46,7 +46,7 @@ func BenchmarkAdd1e5(b *testing.B) { benchmarkAdd(b, 1e5) }
 func BenchmarkAdd1e6(b *testing.B) { benchmarkAdd(b, 1e6) }
 func BenchmarkAdd1e7(b *testing.B) { benchmarkAdd(b, 1e7) }
 
-func benchmarkHasNegative(b *testing.B, nkeys int) {
+func benchmarkHasNegative(b *testing.B, nkeys uint64) {
 	hash := make([]byte, nkeys*sha256Size)
 	r := rand.New(rand.NewSource(0xa58a7))
 	r.Read(hash)
@@ -82,7 +82,7 @@ func BenchmarkHasNegative1e5(b *testing.B) { benchmarkHasNegative(b, 1e5) }
 func BenchmarkHasNegative1e6(b *testing.B) { benchmarkHasNegative(b, 1e6) }
 func BenchmarkHasNegative1e7(b *testing.B) { benchmarkHasNegative(b, 1e7) }
 
-func benchmarkHasPositive(b *testing.B, nkeys int) {
+func benchmarkHasPositive(b *testing.B, nkeys uint64) {
 	hash := make([]byte, nkeys*sha256Size)
 	r := rand.New(rand.NewSource(0xe5871))
 	r.Read(hash)
@@ -97,7 +97,7 @@ func benchmarkHasPositive(b *testing.B, nkeys int) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		found := 0
+		var found uint64
 		h := hash
 		for len(h) > 0 {
 			if bf.Has64(binary.BigEndian.Uint64(h[:8])) {

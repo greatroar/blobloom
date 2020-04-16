@@ -53,7 +53,7 @@ type Filter struct {
 // The number of hash functions uses is silently increased to two.
 // The client passes the first two hashes for every key to Add and Has,
 // which synthesize all following hashes from the two values passed in.
-func New(nbits, nhashes int) *Filter {
+func New(nbits uint64, nhashes int) *Filter {
 	if nbits < 1 {
 		nbits = BlockBits
 	}
@@ -130,8 +130,8 @@ func (f *Filter) Has64(h uint64) bool {
 }
 
 // NBits returns the number of bits of f.
-func (f *Filter) NBits() int {
-	return BlockBits * len(f.b)
+func (f *Filter) NBits() uint64 {
+	return BlockBits * uint64(len(f.b))
 }
 
 const blockSize = BlockBits / 64

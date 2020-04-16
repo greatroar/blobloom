@@ -19,7 +19,8 @@ func TestSimple(t *testing.T) {
 	}
 
 	for _, config := range []struct {
-		nbits, nhashes int
+		nbits   uint64
+		nhashes int
 	}{
 		{1, 2},
 		{1024, 4},
