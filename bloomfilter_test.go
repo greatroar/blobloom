@@ -12,11 +12,7 @@ import (
 )
 
 func TestSimple(t *testing.T) {
-	r := rand.New(rand.NewSource(0x758e326))
-	keys := make([]uint64, 10000)
-	for i := range keys {
-		keys[i] = r.Uint64()
-	}
+	keys := randomU64(10000, 0x758e326)
 
 	for _, config := range []struct {
 		nbits   uint64
@@ -106,4 +102,43 @@ func TestDoubleHashing(t *testing.T) {
 		h1, h2 = doublehash(h1, h2, i)
 		assert.NotEqual(t, h2, 0)
 	}
+}
+
+func TestUnion(t *testing.T) {
+	const n = 1e5
+	hashes := randomU64(n, 0xa6e98fb)
+
+	f := New(n, 5)
+	g := New(n, 5)
+	u := New(n, 5)
+
+	for _, h := range hashes[:n/2] {
+		f.Add64(h)
+		u.Add64(h)
+	}
+	for _, h := range hashes[n/2:] {
+		g.Add64(h)
+		u.Add64(h)
+	}
+
+	assert.NotEqual(t, f, g)
+
+	f.Union(g)
+	assert.Equal(t, u, f)
+	assert.NotEqual(t, u, g)
+
+	g.Union(f)
+	assert.Equal(t, u, g)
+
+	assert.Panics(t, func() { f.Union(New(n, 4)) })
+	assert.Panics(t, func() { f.Union(New(n+BlockBits, 5)) })
+}
+
+func randomU64(n int, seed int64) []uint64 {
+	r := rand.New(rand.NewSource(seed))
+	p := make([]uint64, n)
+	for i := range p {
+		p[i] = r.Uint64()
+	}
+	return p
 }

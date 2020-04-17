@@ -141,6 +141,23 @@ func (f *Filter) NBits() uint64 {
 	return BlockBits * uint64(len(f.b))
 }
 
+// Union sets f to the union of f and g.
+//
+// Union panics when f and g do not have the same number of bits and
+// hash functions. Both Filters must be using the same hash function(s),
+// but Union cannot check this.
+func (f *Filter) Union(g *Filter) {
+	if len(f.b) != len(g.b) {
+		panic("Bloom filters do not have the same number of bits")
+	}
+	if f.k != g.k {
+		panic("Bloom filters do not have the same number of hash functions")
+	}
+	for i := range f.b {
+		f.b[i].union(&g.b[i])
+	}
+}
+
 const blockSize = BlockBits / 64
 
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
@@ -151,6 +168,17 @@ func (b *block) getbit(i uint32) bool {
 	const n = uint32(len(*b))
 	x := (*b)[(i/64)%n] & (1 << (i % 64))
 	return x != 0
+}
+
+func (b *block) union(c *block) {
+	b[0] |= c[0]
+	b[1] |= c[1]
+	b[2] |= c[2]
+	b[3] |= c[3]
+	b[4] |= c[4]
+	b[5] |= c[5]
+	b[6] |= c[6]
+	b[7] |= c[7]
 }
 
 // setbit sets bit (i modulo BlockBits) of b.

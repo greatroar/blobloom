@@ -121,3 +121,36 @@ func addAllSha256(bf *Filter, hash []byte) {
 		hash = hash[sha256Size:]
 	}
 }
+
+func BenchmarkUnion(b *testing.B) {
+	const n = 1e6
+
+	var (
+		cfg    = Config{FPRate: 1e-5, NKeys: n}
+		f      = NewOptimized(cfg)
+		g      = NewOptimized(cfg)
+		fRef   = NewOptimized(cfg)
+		gRef   = NewOptimized(cfg)
+		hashes = randomU64(n, 0xcb6231119)
+	)
+
+	for _, h := range hashes[:n/2] {
+		fRef.Add64(h)
+	}
+	for _, h := range hashes[n/2:] {
+		gRef.Add64(h)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		f.Clear()
+		f.Union(fRef)
+		g.Clear()
+		g.Union(gRef)
+		b.StartTimer()
+
+		f.Union(g)
+	}
+}

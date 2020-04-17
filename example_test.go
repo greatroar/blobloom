@@ -66,3 +66,47 @@ func ExampleOptimize() {
 	// size = 2048MiB
 	// fpr = 0.001
 }
+
+const nworkers = 4
+
+func getKeys(keys chan<- string) {
+	keys <- "hello"
+	keys <- "goodbye"
+	close(keys)
+}
+
+func hash(key string) uint64 {
+	h := fnv.New64()
+	io.WriteString(h, key)
+	return h.Sum64()
+}
+
+func ExampleFilter_Union() {
+	// Union can be used to fill a Bloom filter using multiple goroutines.
+	//
+	// Each goroutine allocates a filter, so the memory use increases by
+	// a factor nworkers-1 compared to a sequential version.
+
+	keys := make(chan string, nworkers)
+	filters := make(chan *blobloom.Filter, nworkers)
+
+	go getKeys(keys)
+
+	for i := 0; i < nworkers; i++ {
+		go func() {
+			f := blobloom.New(1<<20, 6)
+			for key := range keys {
+				f.Add64(hash(key))
+			}
+
+			filters <- f
+		}()
+	}
+
+	f := <-filters
+	for i := 1; i < nworkers; i++ {
+		f.Union(<-filters)
+	}
+
+	// Output:
+}
