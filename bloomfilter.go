@@ -29,6 +29,8 @@
 // https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
+import "sync/atomic"
+
 // BlockBits is the number of bits per block and the minimum number of bits
 // in a Filter.
 //
@@ -97,6 +99,28 @@ func (f *Filter) Add(h1, h2 uint32) {
 // Add64 calls Add with the upper/lower 32 bits of h as h1/h2.
 func (f *Filter) Add64(h uint64) {
 	f.Add(uint32(h>>32), uint32(h))
+}
+
+// AddAtomic atomically inserts a key with hash values h1 and h2 into f.
+//
+// Multiple goroutines may call AddAtomic and AddAtomic64 concurrently,
+// though no goroutines should call any other methods on f concurrently
+// with these methods.
+func (f *Filter) AddAtomic(h1, h2 uint32) {
+	_ = f.b[0] // Suppress divide by zero check.
+
+	i := h1 % uint32(len(f.b))
+	b := &f.b[i]
+
+	for i := 0; i+1 < f.k; i++ {
+		h1, h2 = doublehash(h1, h2, i)
+		b.setbitAtomic(h1)
+	}
+}
+
+// AddAtomic64 calls AddAtomic with the upper/lower 32 bits of h as h1/h2.
+func (f *Filter) AddAtomic64(h uint64) {
+	f.AddAtomic(uint32(h>>32), uint32(h))
 }
 
 // Clear resets f to its empty state.
@@ -185,4 +209,21 @@ func (b *block) union(c *block) {
 func (b *block) setbit(i uint32) {
 	const n = uint32(len(*b))
 	(*b)[(i/64)%n] |= 1 << (i % 64)
+}
+
+// setbit sets bit (i modulo BlockBits) of b, atomically.
+func (b *block) setbitAtomic(i uint32) {
+	const n = uint32(len(*b))
+	bit := uint64(1) << (i % 64)
+	p := &(*b)[(i/64)%n]
+	for {
+		old := atomic.LoadUint64(p)
+		if old&bit != 0 {
+			// Checking here instead of checking the return value from
+			// the CAS is between 25% and 50% faster on the benchmark.
+			return
+		}
+		new := old | bit
+		atomic.CompareAndSwapUint64(p, old, new)
+	}
 }

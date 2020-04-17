@@ -6,6 +6,7 @@ package blobloom
 
 import (
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,6 +103,38 @@ func TestDoubleHashing(t *testing.T) {
 		h1, h2 = doublehash(h1, h2, i)
 		assert.NotEqual(t, h2, 0)
 	}
+}
+
+func TestAtomic(t *testing.T) {
+	var (
+		ch  = make(chan uint64)
+		f   = New(1<<13, 2)
+		ref = New(1<<13, 2)
+	)
+
+	go func() {
+		r := rand.New(rand.NewSource(0xaeb15))
+		for i := 0; i < 1e4; i++ {
+			h := r.Uint64()
+			ref.Add64(h)
+			ch <- h
+		}
+		close(ch)
+	}()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			for h := range ch {
+				f.AddAtomic64(h)
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, ref, f)
 }
 
 func TestUnion(t *testing.T) {
