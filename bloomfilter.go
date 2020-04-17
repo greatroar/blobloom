@@ -99,6 +99,13 @@ func (f *Filter) Add64(h uint64) {
 	f.Add(uint32(h>>32), uint32(h))
 }
 
+// Clear resets f to its empty state.
+func (f *Filter) Clear() {
+	for i := range f.b {
+		f.b[i] = block{}
+	}
+}
+
 // Has reports whether a key with hash values h1 and h2 has been added.
 // It may return a false positive.
 func (f *Filter) Has(h1, h2 uint32) bool {

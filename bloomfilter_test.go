@@ -41,6 +41,11 @@ func TestSimple(t *testing.T) {
 		for _, k := range keys {
 			assert.True(t, f.Has64(k))
 		}
+
+		f.Clear()
+		for _, k := range keys {
+			assert.False(t, f.Has64(k))
+		}
 	}
 }
 
