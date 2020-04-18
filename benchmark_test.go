@@ -2,198 +2,137 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package blobloom
+package blobloom_test
 
 import (
-	"encoding/binary"
 	"math/rand"
-	"sync"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-// These tests simulate a situation where SHA-256 hashes are stored in a
+// These benchmarks simulate a situation where SHA-256 hashes are stored in a
 // Bloom filter, using the first eight bytes as the Bloom filter hashes.
-// Reported speeds are sha256Size * number of SHA-256 hashes per second.
 
-const sha256Size = 32
+const hashSize = 32
 
-func benchmarkAdd(b *testing.B, nkeys uint64) {
-	hash := make([]byte, nkeys*sha256Size)
+func makehashes(n int, seed int64) []byte {
+	h := make([]byte, n*hashSize)
+	r := rand.New(rand.NewSource(seed))
+	r.Read(h)
 
-	r := rand.New(rand.NewSource(98621))
-	r.Read(hash)
+	return h
+}
 
-	// We want to benchmark Add, not Optimize.
-	bf := NewOptimized(Config{
-		FPRate: .01,
-		NKeys:  nkeys,
-	})
-	nhashes := bf.k
-	nbits := bf.NBits()
-	b.Logf("nhashes = %d, nbits = %d", nhashes, nbits)
+// In each iteration, add a SHA-256 into a Bloom filter with the given capacity
+// and desired FPR.
+func benchmarkAdd(b *testing.B, capacity int, fpr float64) {
+	hashes := makehashes(b.N, 51251991517)
+	f := newBF(capacity, fpr)
 
-	b.SetBytes(int64(len(hash)))
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		bf = New(nbits, nhashes)
-		addAllSha256(bf, hash)
+		h := hashes[i*hashSize : (i+1)*hashSize]
+		f.Add(h)
 	}
 }
 
-func BenchmarkAdd1e5(b *testing.B) { benchmarkAdd(b, 1e5) }
-func BenchmarkAdd1e6(b *testing.B) { benchmarkAdd(b, 1e6) }
-func BenchmarkAdd1e7(b *testing.B) { benchmarkAdd(b, 1e7) }
+func BenchmarkAdd1e5_1e2(b *testing.B) { benchmarkAdd(b, 1e5, 1e-2) }
+func BenchmarkAdd1e6_1e2(b *testing.B) { benchmarkAdd(b, 1e6, 1e-2) }
+func BenchmarkAdd1e7_1e2(b *testing.B) { benchmarkAdd(b, 1e7, 1e-2) }
+func BenchmarkAdd1e8_1e2(b *testing.B) { benchmarkAdd(b, 1e8, 1e-2) }
+func BenchmarkAdd1e5_1e3(b *testing.B) { benchmarkAdd(b, 1e5, 1e-3) }
+func BenchmarkAdd1e6_1e3(b *testing.B) { benchmarkAdd(b, 1e6, 1e-3) }
+func BenchmarkAdd1e7_1e3(b *testing.B) { benchmarkAdd(b, 1e7, 1e-3) }
+func BenchmarkAdd1e8_1e3(b *testing.B) { benchmarkAdd(b, 1e8, 1e-3) }
 
-func benchmarkHasNegative(b *testing.B, nkeys uint64) {
-	hash := make([]byte, nkeys*sha256Size)
-	r := rand.New(rand.NewSource(0xa58a7))
-	r.Read(hash)
+// In each iteration, test for a SHA-256 in a Bloom filter with the given capacity
+// and desired FPR that has that SHA-256 added to it.
+func benchmarkTestPos(b *testing.B, capacity int, fpr float64) {
+	hashes := makehashes(capacity, 0x5128351a)
+	f := newBF(capacity, fpr)
 
-	bf := NewOptimized(Config{
-		FPRate: .01,
-		NKeys:  nkeys,
-	})
-	addAllSha256(bf, hash)
+	for i := 0; i < capacity; i++ {
+		h := hashes[i*hashSize : (i+1)*hashSize]
+		f.Add(h)
+	}
 
-	b.SetBytes(sha256Size)
 	b.ResetTimer()
 
-	h := make([]byte, sha256Size)
+	for i := 0; i < b.N; i++ {
+		j := i % capacity
+		h := hashes[j*hashSize : (j+1)*hashSize]
+		if !f.Has(h) {
+			b.Fatalf("%x added to Bloom filter but not retrieved", h)
+		}
+	}
+}
+
+func BenchmarkTestPos1e5_1e2(b *testing.B) { benchmarkTestPos(b, 1e5, 1e-2) }
+func BenchmarkTestPos1e6_1e2(b *testing.B) { benchmarkTestPos(b, 1e6, 1e-2) }
+func BenchmarkTestPos1e7_1e2(b *testing.B) { benchmarkTestPos(b, 1e7, 1e-2) }
+func BenchmarkTestPos1e8_1e2(b *testing.B) { benchmarkTestPos(b, 1e8, 1e-2) }
+func BenchmarkTestPos1e5_1e3(b *testing.B) { benchmarkTestPos(b, 1e5, 1e-3) }
+func BenchmarkTestPos1e6_1e3(b *testing.B) { benchmarkTestPos(b, 1e6, 1e-3) }
+func BenchmarkTestPos1e7_1e3(b *testing.B) { benchmarkTestPos(b, 1e7, 1e-3) }
+func BenchmarkTestPos1e8_1e3(b *testing.B) { benchmarkTestPos(b, 1e8, 1e-3) }
+
+// In each iteration, test for the presence of a SHA-256 in a filled Bloom filter
+// with the given capacity and desired FPR.
+func benchmarkTestNeg(b *testing.B, capacity int, fpr float64) {
+	r := rand.New(rand.NewSource(0xae694))
+	f := newBF(capacity, fpr)
+
+	h := make([]byte, hashSize)
+	for i := 0; i < capacity; i++ {
+		r.Read(h)
+		f.Add(h)
+	}
+
+	// Make new hashes. Assume these are all distinct from the inserted ones.
+	const ntest = 8192
+	hashes := makehashes(ntest, 562175)
+
+	b.ResetTimer()
+
 	fp := 0
 	for i := 0; i < b.N; i++ {
-		r.Read(h)
-		if bf.Has64(binary.BigEndian.Uint64(h[:8])) {
+		j := i % ntest
+		h := hashes[j*hashSize : (j+1)*hashSize]
+		if f.Has(h) {
 			fp++
 		}
 	}
 
-	b.StopTimer()
-
-	if b.N < 10000 {
-		return // Don't test the FPR in the trial runs.
-	}
-	fpr := float64(fp) / float64(b.N)
-	assert.Less(b, fpr, .013)
+	b.Logf("false positive rate = %.3f%%", 100*float64(fp)/float64(b.N))
 }
 
-func BenchmarkHasNegative1e5(b *testing.B) { benchmarkHasNegative(b, 1e5) }
-func BenchmarkHasNegative1e6(b *testing.B) { benchmarkHasNegative(b, 1e6) }
-func BenchmarkHasNegative1e7(b *testing.B) { benchmarkHasNegative(b, 1e7) }
+func BenchmarkTestNeg1e5_1e2(b *testing.B) { benchmarkTestNeg(b, 1e5, 1e-2) }
+func BenchmarkTestNeg1e6_1e2(b *testing.B) { benchmarkTestNeg(b, 1e6, 1e-2) }
+func BenchmarkTestNeg1e7_1e2(b *testing.B) { benchmarkTestNeg(b, 1e7, 1e-2) }
+func BenchmarkTestNeg1e8_1e2(b *testing.B) { benchmarkTestNeg(b, 1e8, 1e-2) }
+func BenchmarkTestNeg1e5_1e3(b *testing.B) { benchmarkTestNeg(b, 1e5, 1e-3) }
+func BenchmarkTestNeg1e6_1e3(b *testing.B) { benchmarkTestNeg(b, 1e6, 1e-3) }
+func BenchmarkTestNeg1e7_1e3(b *testing.B) { benchmarkTestNeg(b, 1e7, 1e-3) }
+func BenchmarkTestNeg1e8_1e3(b *testing.B) { benchmarkTestNeg(b, 1e8, 1e-3) }
 
-func benchmarkHasPositive(b *testing.B, nkeys uint64) {
-	hash := make([]byte, nkeys*sha256Size)
-	r := rand.New(rand.NewSource(0xe5871))
-	r.Read(hash)
-
-	bf := NewOptimized(Config{
-		FPRate: .01,
-		NKeys:  nkeys,
-	})
-	addAllSha256(bf, hash)
-
-	b.SetBytes(int64(len(hash)))
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		var found uint64
-		h := hash
-		for len(h) > 0 {
-			if bf.Has64(binary.BigEndian.Uint64(h[:8])) {
-				found++
-			}
-			h = h[sha256Size:]
-		}
-		if found != nkeys {
-			b.Fatal("some keys not found (or not distinct?)")
-		}
-	}
-}
-
-func BenchmarkHasPositive1e5(b *testing.B) { benchmarkHasPositive(b, 1e5) }
-func BenchmarkHasPositive1e6(b *testing.B) { benchmarkHasPositive(b, 1e6) }
-func BenchmarkHasPositive1e7(b *testing.B) { benchmarkHasPositive(b, 1e7) }
-
-func addAllSha256(bf *Filter, hash []byte) {
-	for len(hash) > 0 {
-		bf.Add64(binary.BigEndian.Uint64(hash[:8]))
-		hash = hash[sha256Size:]
-	}
-}
-
-// Baseline for BenchmarkAddAtomic.
-func benchmarkAddLocked(b *testing.B, nbits uint64) {
-	const nhashes = 22
-
-	f := New(nbits, nhashes)
-	var mu sync.Mutex
-
-	b.ResetTimer()
-
-	b.RunParallel(func(pb *testing.PB) {
-		r := rand.New(rand.NewSource(rand.Int63()))
-		for pb.Next() {
-			mu.Lock()
-			f.Add64(r.Uint64())
-			mu.Unlock()
-		}
-	})
-}
-
-func BenchmarkAddLocked128kB(b *testing.B) { benchmarkAddLocked(b, 1<<20) }
-func BenchmarkAddLocked1MB(b *testing.B)   { benchmarkAddLocked(b, 1<<23) }
-func BenchmarkAddLocked16MB(b *testing.B)  { benchmarkAddLocked(b, 1<<27) }
-
-func benchmarkAddAtomic(b *testing.B, nbits uint64) {
-	const nhashes = 22 // Large number of hashes to create collisions.
-
-	f := New(nbits, nhashes)
-
-	b.ResetTimer()
-
-	b.RunParallel(func(pb *testing.PB) {
-		r := rand.New(rand.NewSource(rand.Int63()))
-		for pb.Next() {
-			f.AddAtomic64(r.Uint64())
-		}
-	})
-}
-
-func BenchmarkAddAtomic128kB(b *testing.B) { benchmarkAddAtomic(b, 1<<20) }
-func BenchmarkAddAtomic1MB(b *testing.B)   { benchmarkAddAtomic(b, 1<<23) }
-func BenchmarkAddAtomic16MB(b *testing.B)  { benchmarkAddAtomic(b, 1<<27) }
-
-func BenchmarkUnion(b *testing.B) {
-	const n = 1e6
-
-	var (
-		cfg    = Config{FPRate: 1e-5, NKeys: n}
-		f      = NewOptimized(cfg)
-		g      = NewOptimized(cfg)
-		fRef   = NewOptimized(cfg)
-		gRef   = NewOptimized(cfg)
-		hashes = randomU64(n, 0xcb6231119)
-	)
-
-	for _, h := range hashes[:n/2] {
-		fRef.Add64(h)
-	}
-	for _, h := range hashes[n/2:] {
-		gRef.Add64(h)
-	}
+// In each iteration, test for the presence of a SHA-256 in an empty Bloom filter
+// with the given capacity and desired FPR.
+func benchmarkTestEmpty(b *testing.B, capacity int, fpr float64) {
+	hashes := makehashes(b.N, 054271)
+	f := newBF(capacity, fpr)
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		f.Clear()
-		f.Union(fRef)
-		g.Clear()
-		g.Union(gRef)
-		b.StartTimer()
-
-		f.Union(g)
+		f.Has(hashes[i*hashSize : (i+1)*hashSize])
 	}
 }
+
+func BenchmarkTestEmpty1e5_1e2(b *testing.B) { benchmarkTestEmpty(b, 1e5, 1e-2) }
+func BenchmarkTestEmpty1e6_1e2(b *testing.B) { benchmarkTestEmpty(b, 1e6, 1e-2) }
+func BenchmarkTestEmpty1e7_1e2(b *testing.B) { benchmarkTestEmpty(b, 1e7, 1e-2) }
+func BenchmarkTestEmpty1e8_1e2(b *testing.B) { benchmarkTestEmpty(b, 1e8, 1e-2) }
+func BenchmarkTestEmpty1e5_1e3(b *testing.B) { benchmarkTestEmpty(b, 1e5, 1e-3) }
+func BenchmarkTestEmpty1e6_1e3(b *testing.B) { benchmarkTestEmpty(b, 1e6, 1e-3) }
+func BenchmarkTestEmpty1e7_1e3(b *testing.B) { benchmarkTestEmpty(b, 1e7, 1e-3) }
+func BenchmarkTestEmpty1e8_1e3(b *testing.B) { benchmarkTestEmpty(b, 1e8, 1e-3) }
