@@ -48,18 +48,24 @@ func BenchmarkAdd1e8_1e3(b *testing.B) { benchmarkAdd(b, 1e8, 1e-3) }
 // In each iteration, test for a SHA-256 in a Bloom filter with the given capacity
 // and desired FPR that has that SHA-256 added to it.
 func benchmarkTestPos(b *testing.B, capacity int, fpr float64) {
-	hashes := makehashes(capacity, 0x5128351a)
+	const ntest = 8192
+	hashes := makehashes(ntest, 0x5128351a)
+
 	f := newBF(capacity, fpr)
 
-	for i := 0; i < capacity; i++ {
+	for i := 0; i < capacity && i < ntest; i++ {
 		h := hashes[i*hashSize : (i+1)*hashSize]
+		f.Add(h)
+	}
+	for i := ntest; i < capacity; i++ {
+		h := make([]byte, hashSize)
 		f.Add(h)
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		j := i % capacity
+		j := i % ntest
 		h := hashes[j*hashSize : (j+1)*hashSize]
 		if !f.Has(h) {
 			b.Fatalf("%x added to Bloom filter but not retrieved", h)
