@@ -105,6 +105,17 @@ func TestDoubleHashing(t *testing.T) {
 	}
 }
 
+func TestReducerange(t *testing.T) {
+	for i := 0; i < 40000; i++ {
+		m := rand.Uint32()
+		j := reducerange(rand.Uint32(), m)
+		if m == 0 {
+			assert.Equal(t, j, 0)
+		}
+		assert.Less(t, j, m)
+	}
+}
+
 func TestAtomic(t *testing.T) {
 	var (
 		ch  = make(chan uint64)

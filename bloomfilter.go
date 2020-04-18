@@ -83,9 +83,7 @@ func New(nbits uint64, nhashes int) *Filter {
 // enhanced double hashing construction of Dillinger and Manolios,
 // https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *Filter) Add(h1, h2 uint32) {
-	_ = f.b[0] // Suppress divide by zero check.
-
-	i := h1 % uint32(len(f.b))
+	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
 	// Derive k hash functions from h1 and h2
@@ -107,9 +105,7 @@ func (f *Filter) Add64(h uint64) {
 // though no goroutines should call any other methods on f concurrently
 // with these methods.
 func (f *Filter) AddAtomic(h1, h2 uint32) {
-	_ = f.b[0] // Suppress divide by zero check.
-
-	i := h1 % uint32(len(f.b))
+	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
 	for i := 0; i+1 < f.k; i++ {
@@ -133,9 +129,7 @@ func (f *Filter) Clear() {
 // Has reports whether a key with hash values h1 and h2 has been added.
 // It may return a false positive.
 func (f *Filter) Has(h1, h2 uint32) bool {
-	_ = f.b[0] // Suppress divide by zero check.
-
-	i := h1 % uint32(len(f.b))
+	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
 	for i := 0; i+1 < f.k; i++ {
@@ -153,6 +147,12 @@ func doublehash(h1, h2 uint32, i int) (uint32, uint32) {
 	h1 = h1 + h2
 	h2 = h2 + uint32(i)
 	return h1, h2
+}
+
+// reducerange maps i to an integer in the range [0,n).
+// https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
+func reducerange(i, n uint32) uint32 {
+	return uint32((uint64(i) * uint64(n)) >> 32)
 }
 
 // Has64 calls Has with the upper/lower 32 bits of h as h1/h2.
