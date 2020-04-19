@@ -190,16 +190,42 @@ func (f *Filter) Union(g *Filter) {
 	}
 }
 
-const blockSize = BlockBits / 64
+const (
+	wordSize  = 32
+	blockSize = BlockBits / wordSize
+)
 
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
-type block [blockSize]uint64
+type block [blockSize]uint32
 
 // getbit reports whether bit (i modulo BlockBits) is set.
 func (b *block) getbit(i uint32) bool {
 	const n = uint32(len(*b))
-	x := (*b)[(i/64)%n] & (1 << (i % 64))
+	x := (*b)[(i/wordSize)%n] & (1 << (i % wordSize))
 	return x != 0
+}
+
+// setbit sets bit (i modulo BlockBits) of b.
+func (b *block) setbit(i uint32) {
+	const n = uint32(len(*b))
+	(*b)[(i/wordSize)%n] |= 1 << (i % wordSize)
+}
+
+// setbit sets bit (i modulo BlockBits) of b, atomically.
+func (b *block) setbitAtomic(i uint32) {
+	const n = uint32(len(*b))
+	bit := uint32(1) << (i % wordSize)
+	p := &(*b)[(i/wordSize)%n]
+	for {
+		old := atomic.LoadUint32(p)
+		if old&bit != 0 {
+			// Checking here instead of checking the return value from
+			// the CAS is between 25% and 50% faster on the benchmark.
+			return
+		}
+		new := old | bit
+		atomic.CompareAndSwapUint32(p, old, new)
+	}
 }
 
 func (b *block) union(c *block) {
@@ -211,27 +237,12 @@ func (b *block) union(c *block) {
 	b[5] |= c[5]
 	b[6] |= c[6]
 	b[7] |= c[7]
-}
-
-// setbit sets bit (i modulo BlockBits) of b.
-func (b *block) setbit(i uint32) {
-	const n = uint32(len(*b))
-	(*b)[(i/64)%n] |= 1 << (i % 64)
-}
-
-// setbit sets bit (i modulo BlockBits) of b, atomically.
-func (b *block) setbitAtomic(i uint32) {
-	const n = uint32(len(*b))
-	bit := uint64(1) << (i % 64)
-	p := &(*b)[(i/64)%n]
-	for {
-		old := atomic.LoadUint64(p)
-		if old&bit != 0 {
-			// Checking here instead of checking the return value from
-			// the CAS is between 25% and 50% faster on the benchmark.
-			return
-		}
-		new := old | bit
-		atomic.CompareAndSwapUint64(p, old, new)
-	}
+	b[8] |= c[8]
+	b[9] |= c[9]
+	b[10] |= c[10]
+	b[11] |= c[11]
+	b[12] |= c[12]
+	b[13] |= c[13]
+	b[14] |= c[14]
+	b[15] |= c[15]
 }

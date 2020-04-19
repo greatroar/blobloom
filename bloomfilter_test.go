@@ -13,6 +13,9 @@
 package blobloom
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
 	"math/rand"
 	"sync"
 	"testing"
@@ -193,4 +196,21 @@ func randomU64(n int, seed int64) []uint64 {
 		p[i] = r.Uint64()
 	}
 	return p
+}
+
+// This test ensures that the switch from 64-bit to 32-bit words did not
+// alter the little-endian serialization of blocks.
+func TestBlockLayout(t *testing.T) {
+	var b block
+	b.setbit(0)
+	b.setbit(1)
+	b.setbit(111)
+	b.setbit(499)
+
+	assert.Equal(t, BlockBits, 8*binary.Size(b))
+
+	h := sha256.New()
+	binary.Write(h, binary.LittleEndian, b)
+	expect := "aa7f8c411600fa387f0c10641eab428a7ed2f27a86171ac69f0e2087b2aa9140"
+	assert.Equal(t, expect, hex.EncodeToString(h.Sum(nil)))
 }
