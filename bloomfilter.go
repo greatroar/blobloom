@@ -231,9 +231,7 @@ func (f *Filter) Union(g *Filter) {
 	if f.k != g.k {
 		panic("Bloom filters do not have the same number of hash functions")
 	}
-	for i := range f.b {
-		f.b[i].union(&g.b[i])
-	}
+	union(f.b, g.b)
 }
 
 const (

@@ -251,6 +251,16 @@ func randomU64(n int, seed int64) []uint64 {
 	return p
 }
 
+func TestUnionSmall(t *testing.T) {
+	f := New(BlockBits, 2)
+	g := New(BlockBits, 2)
+
+	g.Add(42)
+
+	f.Union(g)
+	assert.True(t, f.Has(42))
+}
+
 // This test ensures that the switch from 64-bit to 32-bit words did not
 // alter the little-endian serialization of blocks.
 func TestBlockLayout(t *testing.T) {
