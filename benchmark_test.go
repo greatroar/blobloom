@@ -132,13 +132,15 @@ func BenchmarkTestNeg1e8_1e3(b *testing.B) { benchmarkTestNeg(b, 1e8, 1e-3) }
 // In each iteration, test for the presence of a SHA-256 in an empty Bloom filter
 // with the given capacity and desired FPR.
 func benchmarkTestEmpty(b *testing.B, capacity int, fpr float64) {
-	hashes := makehashes(b.N, 054271)
+	const ntest = 65536
+	hashes := makehashes(ntest, 054271)
 	f := newBF(capacity, fpr)
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		f.Has(hashes[i*hashSize : (i+1)*hashSize])
+		j := i % ntest
+		f.Has(hashes[j*hashSize : (j+1)*hashSize])
 	}
 }
 
