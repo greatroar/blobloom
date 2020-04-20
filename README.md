@@ -1,7 +1,7 @@
 Blobloom
 ========
 
-A blocked Bloom filter package for Go (golang) with no external dependencies.
+A blocked Bloom filter package for Go (golang) with no runtime dependencies.
 
 [Blocked Bloom filters](https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf)
 are a cache-efficient variant of Bloom filters, the well-known approximate set
