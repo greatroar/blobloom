@@ -13,6 +13,8 @@
 package blobloom_test
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"hash/fnv"
 	"io"
@@ -21,6 +23,8 @@ import (
 )
 
 func Example_fnv() {
+	// This example uses the hash/fnv package from the standard Go library.
+
 	f := blobloom.New(10000, 5)
 	h := fnv.New64()
 
@@ -54,6 +58,40 @@ func Example_fnv() {
 	// Mind your step!
 	// Have fun!
 	// Goodbye!
+}
+
+func Example_sha224() {
+	// If you have items addressed by a cryptographic hash,
+	// you can use that as the hash value for a Bloom filter.
+
+	files := []string{
+		"\x85\x52\xd8\xb7\xa7\xdc\x54\x76\xcb\x9e\x25\xde\xe6\x9a\x80\x91\x29\x07\x64\xb7\xf2\xa6\x4f\xe6\xe7\x8e\x95\x68",
+		"\xa0\xad\x8f\x63\x90\x72\x74\x7b\xc3\x43\x09\x45\x94\x0e\x7c\x73\xb8\x34\x93\xf1\x77\x90\x0f\xd2\x7d\x09\x65\x94",
+		"\x7b\xd3\xdb\x48\x1e\x7b\x05\x2c\x88\x18\x68\xcc\x13\xc3\x04\x34\x43\x2d\x7b\x49\x24\x74\x70\x33\xd2\xe8\x6e\x73",
+	}
+
+	// first64 extracts the first 64 bits of a key as a uint64.
+	// The choice of big vs. little-endian is arbitrary.
+	first64 := func(key []byte) uint64 {
+		return binary.BigEndian.Uint64(key[:8])
+	}
+
+	f := blobloom.NewOptimized(blobloom.Config{Capacity: 600, FPRate: .002})
+
+	for _, filehash := range files {
+		f.Add(first64([]byte(filehash)))
+	}
+
+	for _, s := range []string{"Hello, world!", "Goodbye"} {
+		h := sha256.Sum224([]byte(s))
+		found := f.Has(first64(h[:]))
+		if found {
+			fmt.Printf("Found: %v\n", s)
+		}
+	}
+
+	// Output:
+	// Found: Hello, world!
 }
 
 func ExampleOptimize() {
