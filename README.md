@@ -5,7 +5,8 @@ A blocked Bloom filter package for Go (golang) with no external dependencies.
 
 [Blocked Bloom filters](https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf)
 are a cache-efficient variant of Bloom filters, the well-known approximate set
-data structure.
+data structure. To quote [Daniel Lemire](https://lemire.me/blog/2019/12/19/xor-filters-faster-and-smaller-than-bloom-filters/),
+they have "unbeatable speed".
 
 Blobloom does not provide hash functions for use with the Bloom filter.
 Instead, it requires you, the user, to supply hash values. That means you get
