@@ -16,15 +16,17 @@ import "math"
 
 // A Config holds parameters for Optimize or NewOptimized.
 type Config struct {
-	// Desired lower bound on the false positive rate when NKeys distinct
-	// keys have been inserted.
+	// Capacity is the expected number of distinct keys to be added.
+	// More keys can always be added, but the false positive rate can be
+	// expected to drop below FPRate is the number exceeds the Capacity.
+	Capacity uint64
+
+	// Desired lower bound on the false positive rate when the Bloom filter
+	// has been filled to capacity.
 	FPRate float64
 
 	// Maximum size of the Bloom filter in bits. Zero means no limit.
 	MaxBits uint64
-
-	// Expected number of distinct keys.
-	NKeys uint64
 
 	// Trigger the "contains filtered or unexported fields" message for
 	// forward compatibility and to force the caller to use named fields.
@@ -43,7 +45,7 @@ func NewOptimized(cfg Config) *Filter {
 // ca. 1e-15.
 func Optimize(cfg Config) (nbits uint64, nhashes int) {
 	var (
-		n = float64(cfg.NKeys)
+		n = float64(cfg.Capacity)
 		p = cfg.FPRate
 	)
 
@@ -124,7 +126,7 @@ func FPRate(nkeys, nbits uint64, nhashes int) float64 {
 // FPRate computes an estimate of f's false positive rate after nkeys distinct
 // keys have been added.
 func (f *Filter) FPRate(nkeys uint64) float64 {
-	return FPRate(nkeys, f.NBits(), f.k)
+	return FPRate(nkeys, f.NumBits(), f.k)
 }
 
 // Log of the FPR of a single block.

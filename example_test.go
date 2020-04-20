@@ -35,13 +35,13 @@ func Example_fnv() {
 	for _, msg := range messages {
 		h.Reset()
 		io.WriteString(h, msg)
-		f.Add64(h.Sum64())
+		f.Add(h.Sum64())
 	}
 
 	for _, msg := range messages {
 		h.Reset()
 		io.WriteString(h, msg)
-		if f.Has64(h.Sum64()) {
+		if f.Has(h.Sum64()) {
 			fmt.Println(msg)
 		} else {
 			panic("Bloom filter didn't get the message")
@@ -60,12 +60,12 @@ func ExampleOptimize() {
 	cfg := blobloom.Config{
 		// We want to insert a billion keys and get a false positive rate of
 		// one in a million, but we only have 2GiB (= 2^31 bytes) to spare.
-		FPRate:  1e-6,
-		MaxBits: 8 * 1 << 31,
-		NKeys:   1e9,
+		Capacity: 1e9,
+		FPRate:   1e-6,
+		MaxBits:  8 * 1 << 31,
 	}
 	nbits, nhashes := blobloom.Optimize(cfg)
-	fpr := blobloom.FPRate(cfg.NKeys, nbits, nhashes)
+	fpr := blobloom.FPRate(cfg.Capacity, nbits, nhashes)
 
 	// How big will the filter be and what FP rate will we achieve?
 	fmt.Printf("size = %dMiB\nfpr = %.3f\n", nbits/(8<<20), fpr)
@@ -105,7 +105,7 @@ func ExampleFilter_Union() {
 		go func() {
 			f := blobloom.New(1<<20, 6)
 			for key := range keys {
-				f.Add64(hash(key))
+				f.Add(hash(key))
 			}
 
 			filters <- f

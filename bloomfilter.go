@@ -85,34 +85,43 @@ func New(nbits uint64, nhashes int) *Filter {
 	}
 }
 
-// Add inserts a key with hash values h1 and h2 into f.
+// Add insert a key with hash value h into f.
 //
-// The two hash values supplied are used to derive further values using the
-// enhanced double hashing construction of Dillinger and Manolios,
+// The upper and lower half of h are treated as two independent hashes.
+// These are used to derive further values using the enhanced double hashing
+// construction of Dillinger and Manolios,
 // https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
-func (f *Filter) Add(h1, h2 uint32) {
+func (f *Filter) Add(h uint64) {
+	f.Add2(uint32(h>>32), uint32(h))
+}
+
+// Add2 inserts a key with hash values h1 and h2 into f.
+//
+// Add2 is equivalent to Add(h1<<32 | h2).
+func (f *Filter) Add2(h1, h2 uint32) {
 	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
-	// Derive k hash functions from h1 and h2
-	// using the construction described by Kirsch and Mitzenmacher.
 	for i := 0; i+1 < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		b.setbit(h1)
 	}
 }
 
-// Add64 calls Add with the upper/lower 32 bits of h as h1/h2.
-func (f *Filter) Add64(h uint64) {
-	f.Add(uint32(h>>32), uint32(h))
-}
-
-// AddAtomic atomically inserts a key with hash values h1 and h2 into f.
+// AddAtomic atomically inserts a key with hash value h into f.
 //
-// Multiple goroutines may call AddAtomic and AddAtomic64 concurrently,
+// This is a synchronized version of Add.
+// Multiple goroutines may call AddAtomic and AddAtomic2 concurrently,
 // though no goroutines should call any other methods on f concurrently
 // with these methods.
-func (f *Filter) AddAtomic(h1, h2 uint32) {
+func (f *Filter) AddAtomic(h uint64) {
+	f.AddAtomic2(uint32(h>>32), uint32(h))
+}
+
+// AddAtomic2 atomically inserts a key with hash values h1 and h2 into f.
+//
+// AddAtomic2 is equivalent to AddAtomic(h1<<32 | h2).
+func (f *Filter) AddAtomic2(h1, h2 uint32) {
 	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
@@ -122,11 +131,6 @@ func (f *Filter) AddAtomic(h1, h2 uint32) {
 	}
 }
 
-// AddAtomic64 calls AddAtomic with the upper/lower 32 bits of h as h1/h2.
-func (f *Filter) AddAtomic64(h uint64) {
-	f.AddAtomic(uint32(h>>32), uint32(h))
-}
-
 // Clear resets f to its empty state.
 func (f *Filter) Clear() {
 	for i := range f.b {
@@ -134,9 +138,17 @@ func (f *Filter) Clear() {
 	}
 }
 
-// Has reports whether a key with hash values h1 and h2 has been added.
+// Has reports whether a key with hash value h has been added.
 // It may return a false positive.
-func (f *Filter) Has(h1, h2 uint32) bool {
+func (f *Filter) Has(h uint64) bool {
+	return f.Has2(uint32(h>>32), uint32(h))
+}
+
+// Has2 reports whether a key with hash values h1 and h2 has been added.
+// It may return a false positive.
+//
+// Has2 is equivalent to Has(h1<<32 | h2).
+func (f *Filter) Has2(h1, h2 uint32) bool {
 	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
@@ -163,13 +175,8 @@ func reducerange(i, n uint32) uint32 {
 	return uint32((uint64(i) * uint64(n)) >> 32)
 }
 
-// Has64 calls Has with the upper/lower 32 bits of h as h1/h2.
-func (f *Filter) Has64(h uint64) bool {
-	return f.Has(uint32(h>>32), uint32(h))
-}
-
-// NBits returns the number of bits of f.
-func (f *Filter) NBits() uint64 {
+// NumBits returns the number of bits of f.
+func (f *Filter) NumBits() uint64 {
 	return BlockBits * uint64(len(f.b))
 }
 

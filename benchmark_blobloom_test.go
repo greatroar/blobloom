@@ -24,18 +24,18 @@ type bloomFilter blobloom.Filter
 
 func (f *bloomFilter) Add(hash []byte) {
 	h := binary.BigEndian.Uint64(hash[:8])
-	((*blobloom.Filter)(f)).Add64(h)
+	((*blobloom.Filter)(f)).Add(h)
 }
 
 func (f *bloomFilter) Has(hash []byte) bool {
 	h := binary.BigEndian.Uint64(hash[:8])
-	return ((*blobloom.Filter)(f)).Has64(h)
+	return ((*blobloom.Filter)(f)).Has(h)
 }
 
 func newBF(capacity int, fpr float64) *bloomFilter {
 	f := blobloom.NewOptimized(blobloom.Config{
-		FPRate: fpr,
-		NKeys:  uint64(capacity),
+		Capacity: uint64(capacity),
+		FPRate:   fpr,
 	})
 	return (*bloomFilter)(f)
 }

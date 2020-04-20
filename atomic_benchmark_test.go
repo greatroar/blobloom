@@ -31,7 +31,7 @@ func benchmarkAddLocked(b *testing.B, nbits uint64) {
 		r := rand.New(rand.NewSource(rand.Int63()))
 		for pb.Next() {
 			mu.Lock()
-			f.Add64(r.Uint64())
+			f.Add(r.Uint64())
 			mu.Unlock()
 		}
 	})
@@ -51,7 +51,7 @@ func benchmarkAddAtomic(b *testing.B, nbits uint64) {
 	b.RunParallel(func(pb *testing.PB) {
 		r := rand.New(rand.NewSource(rand.Int63()))
 		for pb.Next() {
-			f.AddAtomic64(r.Uint64())
+			f.AddAtomic(r.Uint64())
 		}
 	})
 }
@@ -64,7 +64,7 @@ func BenchmarkUnion(b *testing.B) {
 	const n = 1e6
 
 	var (
-		cfg    = Config{FPRate: 1e-5, NKeys: n}
+		cfg    = Config{Capacity: n, FPRate: 1e-5}
 		f      = NewOptimized(cfg)
 		g      = NewOptimized(cfg)
 		fRef   = NewOptimized(cfg)
@@ -73,10 +73,10 @@ func BenchmarkUnion(b *testing.B) {
 	)
 
 	for _, h := range hashes[:n/2] {
-		fRef.Add64(h)
+		fRef.Add(h)
 	}
 	for _, h := range hashes[n/2:] {
-		gRef.Add64(h)
+		gRef.Add(h)
 	}
 
 	b.ResetTimer()

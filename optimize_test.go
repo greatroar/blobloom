@@ -21,16 +21,16 @@ import (
 func TestFPRate(t *testing.T) {
 	// Examples from Putze et al.
 	// XXX The approximation isn't very precise.
-	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 6), 3e-4, "")
+	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 6), 2.3e-4, "")
 	assert.InDeltaf(t, 0.000194, FPRate(1, 20, 14), 3e-5, "")
 }
 
 func TestNewOptimizedMaxFPR(t *testing.T) {
 	f := NewOptimized(Config{
-		FPRate: 1,
-		NKeys:  0,
+		Capacity: 0,
+		FPRate:   1,
 	})
-	assert.Equal(t, uint64(BlockBits), f.NBits())
+	assert.Equal(t, uint64(BlockBits), f.NumBits())
 }
 
 func TestMaxBits(t *testing.T) {
@@ -47,9 +47,9 @@ func TestMaxBits(t *testing.T) {
 	} {
 		nbits, nhashes := Optimize(Config{
 			// Ask for tiny FPR with a huge number of keys.
-			FPRate:  1e-10,
-			NKeys:   2 * c.want,
-			MaxBits: c.want,
+			Capacity: 2 * c.want,
+			FPRate:   1e-10,
+			MaxBits:  c.want,
 		})
 		// Optimize should round down to multiple of BlockBits.
 		assert.LessOrEqual(t, nbits, c.expect)
@@ -57,20 +57,20 @@ func TestMaxBits(t *testing.T) {
 
 		// New should correct cases < BlockBits.
 		f := New(nbits, nhashes)
-		assert.Equal(t, c.expect, f.NBits())
+		assert.Equal(t, c.expect, f.NumBits())
 	}
 }
 
 func TestOptimizeOneBitOneHash(t *testing.T) {
 	// This configuration produces one hash function.
 	nbits, nhashes := Optimize(Config{
-		FPRate:  .99,
-		MaxBits: 1,
-		NKeys:   1,
+		Capacity: 1,
+		FPRate:   .99,
+		MaxBits:  1,
 	})
 	assert.Equal(t, 1, nhashes)
 
 	f := New(nbits, nhashes)
-	assert.Equal(t, uint64(BlockBits), f.NBits())
+	assert.Equal(t, uint64(BlockBits), f.NumBits())
 	assert.Equal(t, 2, f.k)
 }

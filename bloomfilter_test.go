@@ -37,22 +37,22 @@ func TestSimple(t *testing.T) {
 		{1000000, 14},
 	} {
 		f := New(config.nbits, config.nhashes)
-		assert.GreaterOrEqual(t, f.NBits(), config.nbits)
-		assert.LessOrEqual(t, f.NBits(), config.nbits+512)
+		assert.GreaterOrEqual(t, f.NumBits(), config.nbits)
+		assert.LessOrEqual(t, f.NumBits(), config.nbits+512)
 
 		for _, k := range keys {
-			assert.False(t, f.Has64(k))
+			assert.False(t, f.Has(k))
 		}
 		for _, k := range keys {
-			f.Add64(k)
+			f.Add(k)
 		}
 		for _, k := range keys {
-			assert.True(t, f.Has64(k))
+			assert.True(t, f.Has(k))
 		}
 
 		f.Clear()
 		for _, k := range keys {
-			assert.False(t, f.Has64(k))
+			assert.False(t, f.Has(k))
 		}
 	}
 }
@@ -63,15 +63,15 @@ func TestUse(t *testing.T) {
 	// For FPR = .01, n = 100000, the optimal number of bits is 958505.84
 	// for a standard Bloom filter.
 	f := NewOptimized(Config{
-		FPRate: .01,
-		NKeys:  n,
+		Capacity: n,
+		FPRate:   .01,
 	})
-	if f.NBits() < 958506 {
-		t.Fatalf("bloom filter with %d bits too small", f.NBits())
+	if f.NumBits() < 958506 {
+		t.Fatalf("bloom filter with %d bits too small", f.NumBits())
 	}
 
 	t.Logf("k = %d; m/n = %d/%d = %.3f",
-		f.k, f.NBits(), n, float64(f.NBits())/n)
+		f.k, f.NumBits(), n, float64(f.NumBits())/n)
 
 	// Generate random hash values for n keys. Pretend the keys are all distinct,
 	// even if the hashes are not.
@@ -83,11 +83,11 @@ func TestUse(t *testing.T) {
 	}
 
 	for _, h := range hashes {
-		f.Add64(h)
+		f.Add(h)
 	}
 
 	for _, h := range hashes {
-		if !f.Has64(h) {
+		if !f.Has(h) {
 			t.Errorf("%032x added to Bloom filter but not found", h)
 		}
 	}
@@ -97,7 +97,7 @@ func TestUse(t *testing.T) {
 	const nTest = 10000
 	fp := 0
 	for i := 0; i < nTest; i++ {
-		if f.Has64(r.Uint64()) {
+		if f.Has(r.Uint64()) {
 			fp++
 		}
 	}
@@ -138,7 +138,7 @@ func TestAtomic(t *testing.T) {
 		r := rand.New(rand.NewSource(0xaeb15))
 		for i := 0; i < 1e4; i++ {
 			h := r.Uint64()
-			ref.Add64(h)
+			ref.Add(h)
 			ch <- h
 		}
 		close(ch)
@@ -149,7 +149,7 @@ func TestAtomic(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			for h := range ch {
-				f.AddAtomic64(h)
+				f.AddAtomic(h)
 			}
 			wg.Done()
 		}()
@@ -168,12 +168,12 @@ func TestUnion(t *testing.T) {
 	u := New(n, 5)
 
 	for _, h := range hashes[:n/2] {
-		f.Add64(h)
-		u.Add64(h)
+		f.Add(h)
+		u.Add(h)
 	}
 	for _, h := range hashes[n/2:] {
-		g.Add64(h)
-		u.Add64(h)
+		g.Add(h)
+		u.Add(h)
 	}
 
 	assert.NotEqual(t, f, g)
