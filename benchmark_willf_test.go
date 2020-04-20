@@ -10,7 +10,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// To run the Blobloom benchmarks on willf/bloom, remove the "build ignore"
+// line below, then
+//
+//     go test -tags "benchcompare willf" -bench=.
+//
+// The ignore constraint is there to prevent willf/bloom from ending up in
+// go.mod and becoming a transitive dependency for all users.
+
 // +build benchcompare willf
+// +build ignore
 
 package blobloom_test
 
