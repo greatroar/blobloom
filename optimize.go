@@ -115,6 +115,9 @@ var correctC = []byte{
 // FPRate computes an estimate of the false positive rate of a Bloom filter
 // after nkeys distinct keys have been added.
 func FPRate(nkeys, nbits uint64, nhashes int) float64 {
+	if nkeys == 0 {
+		return 0
+	}
 	return fpRate(float64(nbits)/float64(nkeys), float64(nhashes))
 }
 

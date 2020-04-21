@@ -20,6 +20,9 @@ import (
 )
 
 func TestFPRate(t *testing.T) {
+	// FP rate is zero when no keys have been inserted.
+	assert.Equal(t, 0.0, FPRate(0, 100, 3))
+
 	// Examples from Putze et al., page 4.
 
 	// XXX We compute 0.023041, which is confirmed by PARI/GP and SciPy.
