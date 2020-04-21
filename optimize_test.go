@@ -13,16 +13,41 @@
 package blobloom
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFPRate(t *testing.T) {
-	// Examples from Putze et al.
-	// XXX The approximation isn't very precise.
-	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 6), 2.3e-4, "")
-	assert.InDeltaf(t, 0.000194, FPRate(1, 20, 14), 3e-5, "")
+	// Examples from Putze et al., page 4.
+
+	// XXX We compute 0.023041, which is confirmed by PARI/GP and SciPy.
+	// Is the rounding in the paper off?
+	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 5), 1e-4, "")
+
+	// XXX This one is only accurate to one digit.
+	// The required number does not occur in the series expansion either,
+	// the closest partial sum being 1.9536e-4.
+	assert.InDeltaf(t, 1.94e-4, FPRate(1, 20, 14), 3e-5, "")
+}
+
+func TestFPRateCorrectC(t *testing.T) {
+	// Try to reconstruct the correction table. We may be one bit off.
+	for i, expect := range correctC[1:] {
+		c := float64(i + 1)
+		k := float64(c) * math.Ln2
+		fprBlock := math.Exp(logFprBlock(c, k))
+
+		cprime := c
+		for fpRate(cprime, k) > fprBlock {
+			cprime++
+			k = cprime * math.Ln2
+		}
+
+		assert.InDeltaf(t, float64(expect), cprime, 1,
+			"computed correction off by > 1 bit")
+	}
 }
 
 func TestNewOptimizedMaxFPR(t *testing.T) {
@@ -70,6 +95,8 @@ func TestOptimizeOneBitOneHash(t *testing.T) {
 	})
 	assert.Equal(t, 1, nhashes)
 
+	// New fixes that up to two, because we need one hash function
+	// to select a block.
 	f := New(nbits, nhashes)
 	assert.Equal(t, uint64(BlockBits), f.NumBits())
 	assert.Equal(t, 2, f.k)

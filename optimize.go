@@ -83,8 +83,16 @@ func Optimize(cfg Config) (nbits uint64, nhashes int) {
 	}
 
 	// The corresponding optimal number of hash functions is k = c * log(2).
+	// Try rounding up and down to see which rounding is better.
+	// XXX Should we use the full FPR here instead of block FPR?
 	c = float64(nbits) / n
-	nhashes = int(math.Round(c * math.Ln2))
+	k := c * math.Ln2
+	if logFprBlock(c, math.Floor(k)) > logFprBlock(c, math.Ceil(k)) {
+		k = math.Floor(k)
+	} else {
+		k = math.Ceil(k)
+	}
+	nhashes = int(k)
 
 	if nhashes < 1 {
 		nhashes = 1
@@ -107,9 +115,10 @@ var correctC = []byte{
 // FPRate computes an estimate of the false positive rate of a Bloom filter
 // after nkeys distinct keys have been added.
 func FPRate(nkeys, nbits uint64, nhashes int) float64 {
-	c := float64(nbits) / float64(nkeys)
-	k := float64(nhashes)
+	return fpRate(float64(nbits)/float64(nkeys), float64(nhashes))
+}
 
+func fpRate(c, k float64) float64 {
 	// Putze et al.'s Equation (3).
 	var sum float64
 	for i := float64(1); ; i++ {
