@@ -179,9 +179,11 @@ func TestCardinality(t *testing.T) {
 
 	assert.Equal(t, 0., f.Cardinality())
 
+	r := rand.New(rand.NewSource(0x81feae2b))
+
 	var sumN, sumNhat float64
 	for n := 1.0; n <= 5*cap; n++ {
-		f.Add(rand.Uint64())
+		f.Add(r.Uint64())
 
 		nhat := f.Cardinality()
 		assert.InDelta(t, 1, nhat/float64(n), 0.09)
