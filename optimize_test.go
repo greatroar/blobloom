@@ -27,12 +27,12 @@ func TestFPRate(t *testing.T) {
 
 	// XXX We compute 0.023041, which is confirmed by PARI/GP and SciPy.
 	// Is the rounding in the paper off?
-	assert.InDeltaf(t, 0.0231, FPRate(1, 8, 5), 1e-4, "")
+	assert.InDelta(t, 0.0231, FPRate(1, 8, 5), 1e-4)
 
 	// XXX This one is only accurate to one digit.
 	// The required number does not occur in the series expansion either,
 	// the closest partial sum being 1.9536e-4.
-	assert.InDeltaf(t, 1.94e-4, FPRate(1, 20, 14), 3e-5, "")
+	assert.InDelta(t, 1.94e-4, FPRate(1, 20, 14), 3e-5)
 }
 
 func TestFPRateCorrectC(t *testing.T) {
@@ -48,8 +48,7 @@ func TestFPRateCorrectC(t *testing.T) {
 			k = cprime * math.Ln2
 		}
 
-		assert.InDeltaf(t, float64(expect), cprime, 1,
-			"computed correction off by > 1 bit")
+		assert.InDelta(t, float64(expect), cprime, 1)
 	}
 }
 

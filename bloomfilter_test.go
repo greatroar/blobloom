@@ -39,7 +39,7 @@ func TestSimple(t *testing.T) {
 	} {
 		f := New(config.nbits, config.nhashes)
 		assert.GreaterOrEqual(t, f.NumBits(), config.nbits)
-		assert.LessOrEqual(t, f.NumBits(), config.nbits+512)
+		assert.LessOrEqual(t, f.NumBits(), config.nbits+BlockBits)
 
 		for _, k := range keys {
 			assert.False(t, f.Has(k))
