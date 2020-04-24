@@ -10,32 +10,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// To run the Blobloom benchmarks on willf/bloom, remove the "build ignore"
+// To run the Blobloom benchmarks on ipfs/bbloom, remove the "build ignore"
 // line below, then
 //
-//     go test -run='^$' -tags "benchcompare willf" -bench=.
+//     go test -run='^$' -tags "benchcompare bbloom" -bench=.
 //
-// The ignore constraint is there to prevent willf/bloom from ending up in
+// The ignore constraint is there to prevent ipfs/bbloom from ending up in
 // go.mod and becoming a transitive dependency for all users.
 
-// +build benchcompare willf
+// +build benchcompare bbloom
 // +build ignore
 
 package blobloom_test
 
-import "github.com/willf/bloom"
+import "github.com/ipfs/bbloom"
 
-type bloomFilter bloom.BloomFilter
-
-func (f *bloomFilter) Add(hash []byte) {
-	((*bloom.BloomFilter)(f)).Add(hash)
-}
-
-func (f *bloomFilter) Has(hash []byte) bool {
-	return ((*bloom.BloomFilter)(f)).Test(hash)
-}
+type bloomFilter = bbloom.Bloom
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f := bloom.NewWithEstimates(uint(capacity), fpr)
+	f, err := bbloom.New(float64(capacity), fpr)
+	if err != nil {
+		panic(err)
+	}
 	return (*bloomFilter)(f)
 }
