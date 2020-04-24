@@ -25,6 +25,8 @@ import (
 )
 
 func TestSimple(t *testing.T) {
+	t.Parallel()
+
 	keys := randomU64(10000, 0x758e326)
 
 	for _, config := range []struct {
@@ -59,6 +61,8 @@ func TestSimple(t *testing.T) {
 }
 
 func TestUse(t *testing.T) {
+	t.Parallel()
+
 	const n = 100000
 
 	// For FPR = .01, n = 100000, the optimal number of bits is 958505.84
@@ -109,6 +113,8 @@ func TestUse(t *testing.T) {
 }
 
 func TestDoubleHashing(t *testing.T) {
+	t.Parallel()
+
 	var h1, h2 uint32 = 0, 0
 
 	for i := 0; i < 20; i++ {
@@ -118,6 +124,8 @@ func TestDoubleHashing(t *testing.T) {
 }
 
 func TestReducerange(t *testing.T) {
+	t.Parallel()
+
 	for i := 0; i < 40000; i++ {
 		m := rand.Uint32()
 		j := reducerange(rand.Uint32(), m)
@@ -161,6 +169,8 @@ func TestAtomic(t *testing.T) {
 }
 
 func TestCardinality(t *testing.T) {
+	t.Parallel()
+
 	const cap = 1e4
 	f := NewOptimized(Config{
 		Capacity: cap,
@@ -186,6 +196,8 @@ func TestCardinality(t *testing.T) {
 }
 
 func TestCardinalityFull(t *testing.T) {
+	t.Parallel()
+
 	f := New(BlockBits, 2)
 	for i := range f.b {
 		for j := range f.b[i] {
@@ -197,6 +209,8 @@ func TestCardinalityFull(t *testing.T) {
 }
 
 func TestUnion(t *testing.T) {
+	t.Parallel()
+
 	const n = 1e5
 	hashes := randomU64(n, 0xa6e98fb)
 
@@ -238,6 +252,8 @@ func randomU64(n int, seed int64) []uint64 {
 // This test ensures that the switch from 64-bit to 32-bit words did not
 // alter the little-endian serialization of blocks.
 func TestBlockLayout(t *testing.T) {
+	t.Parallel()
+
 	var b block
 	b.setbit(0)
 	b.setbit(1)

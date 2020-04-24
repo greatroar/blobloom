@@ -20,6 +20,8 @@ import (
 )
 
 func TestFPRate(t *testing.T) {
+	t.Parallel()
+
 	// FP rate is zero when no keys have been inserted.
 	assert.Equal(t, 0.0, FPRate(0, 100, 3))
 
@@ -36,6 +38,8 @@ func TestFPRate(t *testing.T) {
 }
 
 func TestFPRateCorrectC(t *testing.T) {
+	t.Parallel()
+
 	// Try to reconstruct the correction table. We may be one bit off.
 	for i, expect := range correctC[1:] {
 		c := float64(i + 1)
@@ -53,6 +57,8 @@ func TestFPRateCorrectC(t *testing.T) {
 }
 
 func TestNewOptimizedMaxFPR(t *testing.T) {
+	t.Parallel()
+
 	f := NewOptimized(Config{
 		Capacity: 0,
 		FPRate:   1,
@@ -61,6 +67,8 @@ func TestNewOptimizedMaxFPR(t *testing.T) {
 }
 
 func TestMaxBits(t *testing.T) {
+	t.Parallel()
+
 	for _, c := range []struct {
 		want, expect uint64
 	}{
@@ -89,6 +97,8 @@ func TestMaxBits(t *testing.T) {
 }
 
 func TestOptimizeOneBitOneHash(t *testing.T) {
+	t.Parallel()
+
 	// This configuration produces one hash function.
 	nbits, nhashes := Optimize(Config{
 		Capacity: 1,
