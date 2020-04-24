@@ -37,7 +37,11 @@
 // https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
-import "sync/atomic"
+import (
+	"math"
+	"math/bits"
+	"sync/atomic"
+)
 
 // BlockBits is the number of bits per block and the minimum number of bits
 // in a Filter.
@@ -129,6 +133,23 @@ func (f *Filter) AddAtomic2(h1, h2 uint32) {
 		h1, h2 = doublehash(h1, h2, i)
 		b.setbitAtomic(h1)
 	}
+}
+
+// Cardinality estimates the number of distinct keys added to f.
+//
+// The estimate is the maximum likelihood estimate of Papapetrou, Siberski
+// and Nejdl (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf)
+// summed over the blocks.
+func (f *Filter) Cardinality() float64 {
+	log1p := math.Log1p
+	k := float64(f.k) - 1
+
+	var n float64
+	for _, b := range f.b {
+		ones := float64(b.onescount())
+		n += log1p(-ones/BlockBits) / (k * log1p(-1./BlockBits))
+	}
+	return n
 }
 
 // Clear resets f to its empty state.
@@ -233,6 +254,26 @@ func (b *block) setbitAtomic(i uint32) {
 		new := old | bit
 		atomic.CompareAndSwapUint32(p, old, new)
 	}
+}
+
+func (b *block) onescount() (n int) {
+	n += bits.OnesCount32(b[0])
+	n += bits.OnesCount32(b[1])
+	n += bits.OnesCount32(b[2])
+	n += bits.OnesCount32(b[3])
+	n += bits.OnesCount32(b[4])
+	n += bits.OnesCount32(b[5])
+	n += bits.OnesCount32(b[6])
+	n += bits.OnesCount32(b[7])
+	n += bits.OnesCount32(b[8])
+	n += bits.OnesCount32(b[9])
+	n += bits.OnesCount32(b[10])
+	n += bits.OnesCount32(b[11])
+	n += bits.OnesCount32(b[12])
+	n += bits.OnesCount32(b[13])
+	n += bits.OnesCount32(b[14])
+	n += bits.OnesCount32(b[15])
+	return n
 }
 
 func (b *block) union(c *block) {

@@ -159,6 +159,31 @@ func TestAtomic(t *testing.T) {
 	assert.Equal(t, ref, f)
 }
 
+func TestCardinality(t *testing.T) {
+	const cap = 1e4
+	f := NewOptimized(Config{
+		Capacity: cap,
+		FPRate:   .0015,
+	})
+
+	assert.Equal(t, 0., f.Cardinality())
+
+	var sumN, sumNhat float64
+	for n := 1.0; n <= 5*cap; n++ {
+		f.Add(rand.Uint64())
+
+		nhat := f.Cardinality()
+		assert.InDelta(t, 1, nhat/float64(n), 0.09)
+
+		sumN += n
+		sumNhat += nhat
+		if int(n)%cap == 0 {
+			// On average, we want to be less than a percent off.
+			assert.InDelta(t, 1, sumNhat/sumN, 0.008)
+		}
+	}
+}
+
 func TestUnion(t *testing.T) {
 	const n = 1e5
 	hashes := randomU64(n, 0xa6e98fb)

@@ -62,6 +62,49 @@ func BenchmarkAddAtomic128kB(b *testing.B) { benchmarkAddAtomic(b, 1<<20) }
 func BenchmarkAddAtomic1MB(b *testing.B)   { benchmarkAddAtomic(b, 1<<23) }
 func BenchmarkAddAtomic16MB(b *testing.B)  { benchmarkAddAtomic(b, 1<<27) }
 
+func BenchmarkCardinalityDense(b *testing.B) {
+	f := New(1<<20, 2)
+	for i := range f.b {
+		for j := range f.b[i] {
+			f.b[i][j] = rand.Uint32()
+		}
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		f.Cardinality()
+	}
+}
+
+func BenchmarkCardinalitySparse(b *testing.B) {
+	f := New(1<<20, 2)
+	for i := 0; i < len(f.b); i += 2 {
+		for _, j := range []int{4, 8, 13} {
+			f.b[i][j] = rand.Uint32()
+		}
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		f.Cardinality()
+	}
+}
+
+func BenchmarkOnescount(b *testing.B) {
+	var blk block
+	for i := range blk {
+		blk[i] = rand.Uint32()
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		blk.onescount()
+	}
+}
+
 func BenchmarkUnion(b *testing.B) {
 	const n = 1e6
 
