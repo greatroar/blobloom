@@ -135,6 +135,12 @@ func (f *Filter) AddAtomic2(h1, h2 uint32) {
 	}
 }
 
+// log(1 - 1/BlockBits) computed with 128 bits precision.
+// Note that this is extremely close to -1/BlockBits,
+// which is what Wikipedia would have us use:
+// https://en.wikipedia.org/wiki/Bloom_filter#Approximating_the_number_of_items_in_a_Bloom_filter.
+const log1M1Dblockbits = -0.0019550348358033505576274922418668121377
+
 // Cardinality estimates the number of distinct keys added to f.
 //
 // The return value is the maximum likelihood estimate of Papapetrou, Siberski
@@ -145,13 +151,21 @@ func (f *Filter) AddAtomic2(h1, h2 uint32) {
 // It gets worse as f gets more densely filled. When one of the blocks is
 // entirely filled, the estimate becomes +Inf.
 func (f *Filter) Cardinality() float64 {
-	log1p := math.Log1p
 	k := float64(f.k) - 1
 
+	// The probability of some bit not being set in a single insertion is
+	// p0 = (1-1/BlockBits)^k.
+	//
+	// logProb0Inv = 1 / log(p0) = 1 / (k*log(1-1/BlockBits)).
+	logProb0Inv := 1 / (k * log1M1Dblockbits)
+
 	var n float64
-	for _, b := range f.b {
-		ones := float64(b.onescount())
-		n += log1p(-ones/BlockBits) / (k * log1p(-1./BlockBits))
+	for i := range f.b {
+		ones := float64(f.b[i].onescount())
+		if ones == 0 {
+			continue
+		}
+		n += math.Log1p(-ones/BlockBits) * logProb0Inv
 	}
 	return n
 }
