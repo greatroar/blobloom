@@ -137,9 +137,13 @@ func (f *Filter) AddAtomic2(h1, h2 uint32) {
 
 // Cardinality estimates the number of distinct keys added to f.
 //
-// The estimate is the maximum likelihood estimate of Papapetrou, Siberski
-// and Nejdl (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf)
-// summed over the blocks.
+// The return value is the maximum likelihood estimate of Papapetrou, Siberski
+// and Nejdl, summed over the blocks
+// (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
+//
+// The estimate is most reliable when f is filled to roughly its capacity.
+// It gets worse as f gets more densely filled. When one of the blocks is
+// entirely filled, the estimate becomes +Inf.
 func (f *Filter) Cardinality() float64 {
 	log1p := math.Log1p
 	k := float64(f.k) - 1

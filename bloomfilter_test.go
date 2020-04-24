@@ -16,6 +16,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"math"
 	"math/rand"
 	"sync"
 	"testing"
@@ -182,6 +183,17 @@ func TestCardinality(t *testing.T) {
 			assert.InDelta(t, 1, sumNhat/sumN, 0.008)
 		}
 	}
+}
+
+func TestCardinalityFull(t *testing.T) {
+	f := New(BlockBits, 2)
+	for i := range f.b {
+		for j := range f.b[i] {
+			f.b[i][j] = ^uint32(0)
+		}
+	}
+
+	assert.Equal(t, math.Inf(+1), f.Cardinality())
 }
 
 func TestUnion(t *testing.T) {
