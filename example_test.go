@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io"
+	"math"
 
 	"github.com/greatroar/blobloom"
 )
@@ -111,6 +112,38 @@ func ExampleOptimize() {
 	// Output:
 	// size = 2048MiB
 	// fpr = 0.001
+}
+
+func ExampleFilter_Cardinality_infinity() {
+	// To handle the case of Cardinality returning +Inf, track the number of
+	// calls to Add and compute the minimum.
+	//
+	// The reason blobloom does not do this itself is that it would cause
+	// contention in AddAtomic.
+
+	// Construct a Bloom filter with too many hash functions, to force +Inf.
+	f := blobloom.New(512, 999)
+	var numAdd int
+
+	add := func(h uint64) {
+		f.Add(h)
+		numAdd++
+	}
+
+	add(1)
+	add(2)
+	add(3)
+
+	estimate := f.Cardinality()
+	fmt.Printf("blobloom's estimate:    %.2f\n", estimate)
+	fmt.Printf("number of calls to Add: %d\n", numAdd)
+	estimate = math.Min(estimate, float64(numAdd))
+	fmt.Printf("combined estimate:      %.2f\n", estimate)
+
+	// Output:
+	// blobloom's estimate:    +Inf
+	// number of calls to Add: 3
+	// combined estimate:      3.00
 }
 
 const nworkers = 4
