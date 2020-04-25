@@ -10,18 +10,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// These benchmarks can be used for cross-package comparisons.
-// See compare_*_test.go.
-
-package blobloom_test
+package benchmarks
 
 import (
 	"math/rand"
 	"testing"
 )
-
-// These benchmarks simulate a situation where SHA-256 hashes are stored in a
-// Bloom filter, using the first eight bytes as the Bloom filter hashes.
 
 const hashSize = 32
 

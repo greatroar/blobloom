@@ -10,32 +10,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build benchcompare blobloomxxhash
-// +build ignore
+// +build willf
 
-package blobloom_test
+package benchmarks
 
-import (
-	"github.com/cespare/xxhash/v2"
-	"github.com/greatroar/blobloom"
-)
+import "github.com/willf/bloom"
 
-type bloomFilter blobloom.Filter
+type bloomFilter bloom.BloomFilter
 
 func (f *bloomFilter) Add(hash []byte) {
-	h := xxhash.Sum64(hash)
-	((*blobloom.Filter)(f)).Add(h)
+	((*bloom.BloomFilter)(f)).Add(hash)
 }
 
 func (f *bloomFilter) Has(hash []byte) bool {
-	h := xxhash.Sum64(hash)
-	return ((*blobloom.Filter)(f)).Has(h)
+	return ((*bloom.BloomFilter)(f)).Test(hash)
 }
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f := blobloom.NewOptimized(blobloom.Config{
-		Capacity: uint64(capacity),
-		FPRate:   fpr,
-	})
+	f := bloom.NewWithEstimates(uint(capacity), fpr)
 	return (*bloomFilter)(f)
 }

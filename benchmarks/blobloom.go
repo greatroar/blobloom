@@ -10,27 +10,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// To run the Blobloom benchmarks on ipfs/bbloom, remove the "build ignore"
-// line below, then
-//
-//     go test -run='^$' -tags "benchcompare bbloom" -bench=.
-//
-// The ignore constraint is there to prevent ipfs/bbloom from ending up in
-// go.mod and becoming a transitive dependency for all users.
+// +build !bbloom
+// +build !willf
+// +build !xxhash
 
-// +build benchcompare bbloom
-// +build ignore
+package benchmarks
 
-package blobloom_test
+import (
+	"encoding/binary"
 
-import "github.com/ipfs/bbloom"
+	"github.com/greatroar/blobloom"
+)
 
-type bloomFilter = bbloom.Bloom
+type bloomFilter blobloom.Filter
+
+func (f *bloomFilter) Add(hash []byte) {
+	h := binary.BigEndian.Uint64(hash[:8])
+	((*blobloom.Filter)(f)).Add(h)
+}
+
+func (f *bloomFilter) Has(hash []byte) bool {
+	h := binary.BigEndian.Uint64(hash[:8])
+	return ((*blobloom.Filter)(f)).Has(h)
+}
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f, err := bbloom.New(float64(capacity), fpr)
-	if err != nil {
-		panic(err)
-	}
+	f := blobloom.NewOptimized(blobloom.Config{
+		Capacity: uint64(capacity),
+		FPRate:   fpr,
+	})
 	return (*bloomFilter)(f)
 }

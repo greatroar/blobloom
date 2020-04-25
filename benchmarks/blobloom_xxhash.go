@@ -10,32 +10,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// To run the Blobloom benchmarks on willf/bloom, remove the "build ignore"
-// line below, then
-//
-//     go test -run='^$' -tags "benchcompare willf" -bench=.
-//
-// The ignore constraint is there to prevent willf/bloom from ending up in
-// go.mod and becoming a transitive dependency for all users.
+// +build xxhash
 
-// +build benchcompare willf
-// +build ignore
+package benchmarks
 
-package blobloom_test
+import (
+	"github.com/cespare/xxhash/v2"
+	"github.com/greatroar/blobloom"
+)
 
-import "github.com/willf/bloom"
-
-type bloomFilter bloom.BloomFilter
+type bloomFilter blobloom.Filter
 
 func (f *bloomFilter) Add(hash []byte) {
-	((*bloom.BloomFilter)(f)).Add(hash)
+	h := xxhash.Sum64(hash)
+	((*blobloom.Filter)(f)).Add(h)
 }
 
 func (f *bloomFilter) Has(hash []byte) bool {
-	return ((*bloom.BloomFilter)(f)).Test(hash)
+	h := xxhash.Sum64(hash)
+	return ((*blobloom.Filter)(f)).Has(h)
 }
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f := bloom.NewWithEstimates(uint(capacity), fpr)
+	f := blobloom.NewOptimized(blobloom.Config{
+		Capacity: uint64(capacity),
+		FPRate:   fpr,
+	})
 	return (*bloomFilter)(f)
 }
