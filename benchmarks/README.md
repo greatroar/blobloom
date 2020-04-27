@@ -22,8 +22,9 @@ function.
 
 On an Intel Core i7-3770k (3.5GHz), Blobloom is between two and four times
 faster than bbloom on a Bloom filter that can handle 100 million elements with
-an FPR of 0.1%:
+an FPR of 1% (_1e2) or 0.1% (_1e3):
 
+    Add1e8_1e2-8         166ns ± 1%    53ns ± 2%  -67.84%  (p=0.000 n=9+15)
     Add1e8_1e2-8         166ns ± 1%    66ns ±22%  -60.32%  (p=0.000 n=9+10)
     Add1e8_1e3-8         202ns ± 1%    91ns ± 2%  -55.00%  (p=0.000 n=10+10)
     TestEmpty1e8_1e2-8  59.0ns ± 2%  13.8ns ± 1%  -76.57%  (p=0.000 n=5+10)
