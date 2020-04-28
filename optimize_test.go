@@ -26,6 +26,10 @@ func TestFPRate(t *testing.T) {
 	// FP rate is zero when no keys have been inserted.
 	assert.Equal(t, 0.0, FPRate(0, 100, 3))
 
+	// FP rate is close to one when the capacity is greatly exceeded.
+	nhashes := 100.0 * math.Ln2
+	assert.InDelta(t, 1.0, FPRate(1e9, 1e8, int(nhashes)), 1e-7)
+
 	// Examples from Putze et al., page 4.
 
 	// XXX We compute 0.023041, which is confirmed by PARI/GP and SciPy.
