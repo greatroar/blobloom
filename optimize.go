@@ -84,21 +84,22 @@ func Optimize(cfg Config) (nbits uint64, nhashes int) {
 
 	// The corresponding optimal number of hash functions is k = c * log(2).
 	// Try rounding up and down to see which rounding is better.
-	// XXX Should we use the full FPR here instead of block FPR?
 	c = float64(nbits) / n
 	k := c * math.Ln2
-	if logFprBlock(c, math.Floor(k)) > logFprBlock(c, math.Ceil(k)) {
+	if k < 1 {
+		nhashes = 1
+		return nbits, nhashes
+	}
+
+	fprFloor, _ := fpRate(c, math.Floor(k))
+	fprCeil, _ := fpRate(c, math.Ceil(k))
+	if fprFloor < fprCeil {
 		k = math.Floor(k)
 	} else {
 		k = math.Ceil(k)
 	}
-	nhashes = int(k)
 
-	if nhashes < 1 {
-		nhashes = 1
-	}
-
-	return nbits, nhashes
+	return nbits, int(k)
 }
 
 // correctC maps c = m/n for a vanilla Bloom filter to the c' for a
