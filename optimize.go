@@ -118,21 +118,44 @@ func FPRate(nkeys, nbits uint64, nhashes int) float64 {
 	if nkeys == 0 {
 		return 0
 	}
-	return fpRate(float64(nbits)/float64(nkeys), float64(nhashes))
+	p, _ := fpRate(float64(nbits)/float64(nkeys), float64(nhashes))
+	return p
 }
 
-func fpRate(c, k float64) float64 {
+func fpRate(c, k float64) (p float64, iter int) {
 	// Putze et al.'s Equation (3).
-	var sum float64
-	for i := float64(1); ; i++ {
-		add := math.Exp(logPoisson(BlockBits/c, i) + logFprBlock(BlockBits/i, k))
-		sum += add
-		if add/sum < 1e-8 {
+	//
+	// The Poisson distribution has a single spike around its mean
+	// BlockBits/c that gets slimmer and further away from zero as c tends
+	// to zero (the Bloom filter gets more filled). We start at the mean,
+	// then add terms left and right of it until their relative contribution
+	// drops below ε.
+	const ε = 1e-9
+	mean := BlockBits / c
+
+	// Ceil to make sure we start at one, not zero.
+	i := math.Ceil(mean)
+	p = math.Exp(logPoisson(mean, i) + logFprBlock(BlockBits/i, k))
+
+	for j := i - 1; j > 0; j-- {
+		add := math.Exp(logPoisson(mean, j) + logFprBlock(BlockBits/j, k))
+		p += add
+		iter++
+		if add/p < ε {
 			break
 		}
 	}
 
-	return sum
+	for j := i + 1; ; j++ {
+		add := math.Exp(logPoisson(mean, j) + logFprBlock(BlockBits/j, k))
+		p += add
+		iter++
+		if add/p < ε {
+			break
+		}
+	}
+
+	return
 }
 
 // FPRate computes an estimate of f's false positive rate after nkeys distinct
@@ -141,7 +164,7 @@ func (f *Filter) FPRate(nkeys uint64) float64 {
 	return FPRate(nkeys, f.NumBits(), f.k)
 }
 
-// Log of the FPR of a single block.
+// Log of the FPR of a single block, FPR = (1 - exp(-k/c))^k.
 func logFprBlock(c, k float64) float64 {
 	return k * math.Log1p(-math.Exp(-k/c))
 }

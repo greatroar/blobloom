@@ -13,6 +13,7 @@
 package blobloom
 
 import (
+	"fmt"
 	"math"
 	"testing"
 
@@ -29,12 +30,36 @@ func TestFPRate(t *testing.T) {
 
 	// XXX We compute 0.023041, which is confirmed by PARI/GP and SciPy.
 	// Is the rounding in the paper off?
-	assert.InDelta(t, 0.0231, FPRate(1, 8, 5), 1e-4)
+	assert.InDelta(t, 0.0231, FPRate(1, 8, 5), 6e-5)
 
 	// XXX This one is only accurate to one digit.
 	// The required number does not occur in the series expansion either,
 	// the closest partial sum being 1.9536e-4.
 	assert.InDelta(t, 1.94e-4, FPRate(1, 20, 14), 3e-5)
+}
+
+func TestFPRateConvergence(t *testing.T) {
+	for _, c := range []struct {
+		c, k float64
+		iter int
+	}{
+		{.01, 1, 2500},
+		{.1, 1, 2000},
+		{3, 2, 200},
+		{4, 2, 200},
+		{6, 3, 200},
+		{8, 5, 200},
+		{20, 14, 100},
+		{30, 20, 100},
+	} {
+		t.Run(fmt.Sprintf("c=%f,k=%d", c.c, int(c.k)), func(t *testing.T) {
+			t.Parallel()
+
+			fpr, iterations := fpRate(c.c, c.k)
+			t.Logf("fpr = %f", fpr)
+			assert.Less(t, iterations, c.iter)
+		})
+	}
 }
 
 func TestFPRateCorrectC(t *testing.T) {
@@ -47,7 +72,10 @@ func TestFPRateCorrectC(t *testing.T) {
 		fprBlock := math.Exp(logFprBlock(c, k))
 
 		cprime := c
-		for fpRate(cprime, k) > fprBlock {
+		for {
+			if p, _ := fpRate(cprime, k); p <= fprBlock {
+				break
+			}
 			cprime++
 			k = cprime * math.Ln2
 		}
