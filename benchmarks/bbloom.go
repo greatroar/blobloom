@@ -10,14 +10,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// To run the Blobloom benchmarks on ipfs/bbloom, remove the "build ignore"
-// line below, then
-//
-//     go test -run='^$' -tags "benchcompare bbloom" -bench=.
-//
-// The ignore constraint is there to prevent ipfs/bbloom from ending up in
-// go.mod and becoming a transitive dependency for all users.
-
 // +build bbloom
 
 package benchmarks
