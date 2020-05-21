@@ -28,5 +28,23 @@ func (f *bloomFilter) Has(hash []byte) bool {
 
 func newBF(capacity int, fpr float64) *bloomFilter {
 	f := boom.NewBloomFilter(uint(capacity), fpr)
+	f.SetHash(&nopHash{})
 	return (*bloomFilter)(f)
+}
+
+// No-op hash function. Assumes all data is written to it in one Write call.
+type nopHash struct{ data []byte }
+
+func (h *nopHash) BlockSize() int      { return 1 }
+func (h *nopHash) Reset()              {}
+func (h *nopHash) Size() int           { return 8 }
+func (h *nopHash) Sum(d []byte) []byte { return append(d, h.data...) }
+func (h *nopHash) Sum64() uint64       { panic("not used by BoomFilters") }
+
+func (h *nopHash) Write(p []byte) (n int, err error) {
+	if len(p) > 8 {
+		p = p[:8]
+	}
+	h.data = p
+	return len(p), nil
 }
