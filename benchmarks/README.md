@@ -1,12 +1,13 @@
 This module contains benchmarks for comparison against other Bloom filter
 packages. To run these benchmarks, pick a build tag from the following table:
 
-| Tag      | Package                                  |
-| -------- | ---------------------------------------- |
-| (no tag) | This package with pre-hashed inputs      |
-| bbloom   | github.com/ipfs/bbloom                   |
-| xxhash   | This package + github.com/cespare/xxhash |
-| willf    | github.com/willf/bloom                   |
+| Tag      | Package                                                     |
+| -------- | ----------------------------------------------------------- |
+| (no tag) | This package with pre-hashed inputs                         |
+| bbloom   | github.com/ipfs/bbloom                                      |
+| boom     | github.com/tylertreat/BoomFilters ("classic" Bloom filters) |
+| xxhash   | This package + github.com/cespare/xxhash                    |
+| willf    | github.com/willf/bloom                                      |
 
 Then invoke go test as follows:
 

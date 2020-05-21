@@ -10,35 +10,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !bbloom
-// +build !boom
-// +build !willf
-// +build !xxhash
+// +build boom
 
 package benchmarks
 
-import (
-	"encoding/binary"
+import "github.com/tylertreat/BoomFilters"
 
-	"github.com/greatroar/blobloom"
-)
-
-type bloomFilter blobloom.Filter
+type bloomFilter boom.BloomFilter
 
 func (f *bloomFilter) Add(hash []byte) {
-	h := binary.BigEndian.Uint64(hash[:8])
-	((*blobloom.Filter)(f)).Add(h)
+	((*boom.BloomFilter)(f)).Add(hash)
 }
 
 func (f *bloomFilter) Has(hash []byte) bool {
-	h := binary.BigEndian.Uint64(hash[:8])
-	return ((*blobloom.Filter)(f)).Has(h)
+	return ((*boom.BloomFilter)(f)).Test(hash)
 }
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f := blobloom.NewOptimized(blobloom.Config{
-		Capacity: uint64(capacity),
-		FPRate:   fpr,
-	})
+	f := boom.NewBloomFilter(uint(capacity), fpr)
 	return (*bloomFilter)(f)
 }
