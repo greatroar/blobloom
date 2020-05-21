@@ -139,8 +139,8 @@ func TestReducerange(t *testing.T) {
 func TestAtomic(t *testing.T) {
 	var (
 		ch  = make(chan uint64)
-		f   = New(1<<13, 2)
-		ref = New(1<<13, 2)
+		f   = New(1<<13, 4)
+		ref = New(1<<13, 4)
 	)
 
 	go func() {
