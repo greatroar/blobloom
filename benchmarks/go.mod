@@ -1,4 +1,4 @@
-module github.com/greatroar/blobloom/benchmark
+module github.com/greatroar/blobloom/benchmarks
 
 go 1.14
 
