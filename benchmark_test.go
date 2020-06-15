@@ -117,6 +117,8 @@ func BenchmarkUnion(b *testing.B) {
 		hashes = randomU64(n, 0xcb6231119)
 	)
 
+	b.Logf("NumBits = %d", f.NumBits())
+
 	for _, h := range hashes[:n/2] {
 		fRef.Add(h)
 	}
