@@ -24,7 +24,7 @@ func TestFPRate(t *testing.T) {
 	t.Parallel()
 
 	// FP rate is zero when no keys have been inserted.
-	assert.Equal(t, 0.0, FPRate(0, 100, 3))
+	assert.EqualValues(t, 0, FPRate(0, 100, 3))
 
 	// FP rate is close to one when the capacity is greatly exceeded.
 	nhashes := 100.0 * math.Ln2
@@ -95,7 +95,7 @@ func TestNewOptimizedMaxFPR(t *testing.T) {
 		Capacity: 0,
 		FPRate:   1,
 	})
-	assert.Equal(t, uint64(BlockBits), f.NumBits())
+	assert.EqualValues(t, BlockBits, f.NumBits())
 }
 
 func TestMaxBits(t *testing.T) {
@@ -120,7 +120,7 @@ func TestMaxBits(t *testing.T) {
 		})
 		// Optimize should round down to multiple of BlockBits.
 		assert.LessOrEqual(t, nbits, c.expect)
-		assert.Equal(t, uint64(0), nbits%BlockBits)
+		assert.EqualValues(t, 0, nbits%BlockBits)
 
 		// New should correct cases < BlockBits.
 		f := New(nbits, nhashes)
@@ -142,6 +142,6 @@ func TestOptimizeOneBitOneHash(t *testing.T) {
 	// New fixes that up to two, because we need one hash function
 	// to select a block.
 	f := New(nbits, nhashes)
-	assert.Equal(t, uint64(BlockBits), f.NumBits())
+	assert.EqualValues(t, BlockBits, f.NumBits())
 	assert.Equal(t, 2, f.k)
 }

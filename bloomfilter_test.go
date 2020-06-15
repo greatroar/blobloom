@@ -177,7 +177,7 @@ func TestCardinality(t *testing.T) {
 		FPRate:   .0015,
 	})
 
-	assert.Equal(t, 0., f.Cardinality())
+	assert.EqualValues(t, 0, f.Cardinality())
 
 	r := rand.New(rand.NewSource(0x81feae2b))
 
