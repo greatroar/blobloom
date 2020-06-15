@@ -72,7 +72,7 @@ func Optimize(cfg Config) (nbits uint64, nhashes int) {
 		nbits += BlockBits - nbits%BlockBits
 	}
 
-	maxbits := uint64(1<<32) * BlockBits
+	var maxbits uint64 = MaxBits
 	if cfg.MaxBits != 0 && cfg.MaxBits < maxbits {
 		maxbits = cfg.MaxBits
 	}
