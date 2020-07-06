@@ -64,9 +64,9 @@ type Filter struct {
 // The number of bits should be at least BlockBits; smaller values are silently
 // increased.
 //
-// The number of hash functions uses is silently increased to two.
-// The client passes the first two hashes for every key to Add and Has,
-// which synthesize all following hashes from the two values passed in.
+// The number of hashes reflects the number of hashes synthesized from the
+// single hash passed in by the client. It is silently increased to two if
+// a lower value is given.
 func New(nbits uint64, nhashes int) *Filter {
 	if nbits < 1 {
 		nbits = BlockBits
@@ -96,13 +96,7 @@ func New(nbits uint64, nhashes int) *Filter {
 // construction of Dillinger and Manolios,
 // https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *Filter) Add(h uint64) {
-	f.Add2(uint32(h>>32), uint32(h))
-}
-
-// Add2 inserts a key with hash values h1 and h2 into f.
-//
-// Add2 is equivalent to Add(h1<<32 | h2).
-func (f *Filter) Add2(h1, h2 uint32) {
+	h1, h2 := uint32(h>>32), uint32(h)
 	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
@@ -115,17 +109,10 @@ func (f *Filter) Add2(h1, h2 uint32) {
 // AddAtomic atomically inserts a key with hash value h into f.
 //
 // This is a synchronized version of Add.
-// Multiple goroutines may call AddAtomic and AddAtomic2 concurrently,
-// though no goroutines should call any other methods on f concurrently
-// with these methods.
+// Multiple goroutines may call AddAtomic concurrently, but no goroutine
+// may call any other method on f concurrently with this method.
 func (f *Filter) AddAtomic(h uint64) {
-	f.AddAtomic2(uint32(h>>32), uint32(h))
-}
-
-// AddAtomic2 atomically inserts a key with hash values h1 and h2 into f.
-//
-// AddAtomic2 is equivalent to AddAtomic(h1<<32 | h2).
-func (f *Filter) AddAtomic2(h1, h2 uint32) {
+	h1, h2 := uint32(h>>32), uint32(h)
 	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 
@@ -180,14 +167,7 @@ func (f *Filter) Clear() {
 // Has reports whether a key with hash value h has been added.
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
-	return f.Has2(uint32(h>>32), uint32(h))
-}
-
-// Has2 reports whether a key with hash values h1 and h2 has been added.
-// It may return a false positive.
-//
-// Has2 is equivalent to Has(h1<<32 | h2).
-func (f *Filter) Has2(h1, h2 uint32) bool {
+	h1, h2 := uint32(h>>32), uint32(h)
 	i := reducerange(h1, uint32(len(f.b)))
 	b := &f.b[i]
 

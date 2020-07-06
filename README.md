@@ -10,11 +10,11 @@ they have "unbeatable speed". See the directory benchmarks/ to determine
 exactly how fast Blobloom is compared to other packages.
 
 Blobloom does not provide hash functions for use with the Bloom filter.
-Instead, it requires you, the user, to supply hash values. That means you get
-to pick the hash algorithm that is fastest for your data or reuse hashes that
-you've already computed (say, a SHA-2). You only need to supply one 64-bit
-hash value or two 32-bit ones, as Blobloom uses the [enhanced double
-hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
+Instead, it requires you client code to supply hash values. That means you get
+to pick the hash algorithm that is fastest for your data, use a secure hash
+such as SipHash or reuse hashes that you've already computed.
+You only need to supply one 64-bit hash value as Blobloom uses the
+[enhanced double hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
 algorithm to synthesize any further hash values it needs.
 
 See the [package documentation](https://godoc.org/github.com/greatroar/blobloom)
