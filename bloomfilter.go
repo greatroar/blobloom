@@ -15,13 +15,11 @@
 // Blocked Bloom filters are an approximate set data structure: if a key has
 // been added to a filter, a lookup of that key returns true, but if the key
 // has not been added, there is a non-zero probability that the lookup still
-// returns true (a false positive). It follows that, if the lookup for a key
-// returns false, that key has not been added to the filter.
+// returns true (a false positive). False negatives are impossible: if the
+// lookup for a key returns false, that key has not been added.
 //
 // In this package, keys are represented exclusively as hashes. Client code
-// is responsible for supplying two 32-bit hash values for a key. No hash
-// function is provided, since the "right" hash function for an application
-// depends on the data the application processes.
+// is responsible for supplying a 64-bit hash value.
 //
 // Compared to standard Bloom filters, blocked Bloom filters use the CPU
 // cache more efficiently. A blocked Bloom filter is an array of ordinary
