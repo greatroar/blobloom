@@ -23,10 +23,10 @@ TEXT ·intersect(SB), NOSPLIT, $0-48
 	MOVQ	a_len+8(FP), CX
 	MOVQ	b_base+24(FP), SI
 
-loop:
 	CMPQ	CX, $4
 	JB	pair
 
+loop:
 	// Intersect four blocks of a with four blocks of b into a.
 	MOVOU	( 0*16)(DI), X0
 	MOVOU	( 1*16)(DI), X1
@@ -80,9 +80,10 @@ loop:
 	MOVOU	X15, (15*16)(DI)
 
 	SUBQ	$4, CX
-	LEAQ	(256)(DI), DI
-	LEAQ	(256)(SI), SI
-	JMP	loop
+	LEAQ	256(DI), DI
+	LEAQ	256(SI), SI
+	CMPQ	CX, $4
+	JAE	loop
 
 pair:
 	CMPQ	CX, $2
@@ -150,10 +151,10 @@ TEXT ·union(SB), NOSPLIT, $0-48
 	MOVQ	a_len+8(FP), CX
 	MOVQ	b_base+24(FP), SI
 
-loop:
 	CMPQ	CX, $4
 	JB	pair
 
+loop:
 	// Union four blocks of a with four blocks of b into a.
 	MOVOU	( 0*16)(DI), X0
 	MOVOU	( 1*16)(DI), X1
@@ -207,9 +208,10 @@ loop:
 	MOVOU	X15, (15*16)(DI)
 
 	SUBQ	$4, CX
-	LEAQ	(256)(DI), DI
-	LEAQ	(256)(SI), SI
-	JMP	loop
+	LEAQ	256(DI), DI
+	LEAQ	256(SI), SI
+	CMPQ	CX, $4
+	JAE	loop
 
 pair:
 	CMPQ	CX, $2
