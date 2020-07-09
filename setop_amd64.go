@@ -16,4 +16,8 @@ package blobloom
 
 //go:noescape
 //go:nosplit
+func intersect(a, b []block)
+
+//go:noescape
+//go:nosplit
 func union(a, b []block)

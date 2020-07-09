@@ -210,6 +210,52 @@ func TestCardinalityFull(t *testing.T) {
 	assert.Equal(t, math.Inf(+1), f.Cardinality())
 }
 
+func TestIntersect(t *testing.T) {
+	t.Parallel()
+
+	const n uint64 = 1e4
+	const seed = 0x5544332211
+	hashes := randomU64(int(n), seed)
+
+	f := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
+	g := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
+	i := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
+
+	for _, h := range hashes[:n/3] {
+		f.Add(h)
+	}
+	for _, h := range hashes[n/3 : 2*n/3] {
+		f.Add(h)
+		g.Add(h)
+		i.Add(h)
+	}
+	for _, h := range hashes[n/3:] {
+		g.Add(h)
+	}
+
+	expectFPR := math.Min(f.FPRate(n), g.FPRate(n))
+
+	f.Intersect(g)
+	assert.NotEqual(t, i, g)
+
+	for _, h := range hashes[n/3 : 2*n/3] {
+		assert.True(t, f.Has(h))
+	}
+
+	var fp uint64
+	for _, h := range hashes {
+		if f.Has(h) && !i.Has(h) {
+			fp++
+		}
+	}
+	actualFPR := float64(fp) / float64(n)
+	assert.Less(t, actualFPR, 2*expectFPR)
+	t.Logf("FPR = %f", actualFPR)
+
+	assert.Panics(t, func() { f.Intersect(New(f.NumBits(), 9)) })
+	assert.Panics(t, func() { f.Union(New(n+BlockBits, f.k)) })
+}
+
 func TestUnion(t *testing.T) {
 	t.Parallel()
 

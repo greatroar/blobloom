@@ -14,6 +14,12 @@
 
 package blobloom
 
+func intersect(a, b []block) {
+	for i := range a {
+		a[i].intersect(&b[i])
+	}
+}
+
 func union(a, b []block) {
 	for i := range a {
 		a[i].union(&b[i])

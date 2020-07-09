@@ -199,6 +199,27 @@ func (f *Filter) NumBits() uint64 {
 	return BlockBits * uint64(len(f.b))
 }
 
+// Intersect sets f to the intersection of f and g.
+//
+// Intersect panics when f and g do not have the same number of bits and
+// hash functions. Both Filters must be using the same hash function(s),
+// but Intersect cannot check this.
+//
+// Since Bloom filters may return false positives, Has may return true for
+// a key that was not in both f and g.
+//
+// After Intersect, the estimates from Cardinality and FPRate should be
+// considered unreliable.
+func (f *Filter) Intersect(g *Filter) {
+	if len(f.b) != len(g.b) {
+		panic("Bloom filters do not have the same number of bits")
+	}
+	if f.k != g.k {
+		panic("Bloom filters do not have the same number of hash functions")
+	}
+	intersect(f.b, g.b)
+}
+
 // Union sets f to the union of f and g.
 //
 // Union panics when f and g do not have the same number of bits and
@@ -270,6 +291,25 @@ func (b *block) onescount() (n int) {
 	n += bits.OnesCount32(b[14])
 	n += bits.OnesCount32(b[15])
 	return n
+}
+
+func (b *block) intersect(c *block) {
+	b[0] &= c[0]
+	b[1] &= c[1]
+	b[2] &= c[2]
+	b[3] &= c[3]
+	b[4] &= c[4]
+	b[5] &= c[5]
+	b[6] &= c[6]
+	b[7] &= c[7]
+	b[8] &= c[8]
+	b[9] &= c[9]
+	b[10] &= c[10]
+	b[11] &= c[11]
+	b[12] &= c[12]
+	b[13] &= c[13]
+	b[14] &= c[14]
+	b[15] &= c[15]
 }
 
 func (b *block) union(c *block) {
