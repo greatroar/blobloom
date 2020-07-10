@@ -10,6 +10,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package benchmarks contains benchmarks for various Bloom filter
+// implementations, selected by build tags. See README.md for details.
 package benchmarks
 
 import (
