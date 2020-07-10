@@ -9,3 +9,7 @@ if [ "$(go env GOARCH)" = amd64 ]; then
 else
 	go test
 fi
+
+for e in examples/*; do
+	(cd $e && go build && rm $(basename $e))
+done
