@@ -124,7 +124,7 @@ func (f *Filter) AddAtomic(h uint64) {
 // Note that this is extremely close to -1/BlockBits,
 // which is what Wikipedia would have us use:
 // https://en.wikipedia.org/wiki/Bloom_filter#Approximating_the_number_of_items_in_a_Bloom_filter.
-const log1M1Dblockbits = -0.0019550348358033505576274922418668121377
+const log1minus1divBlockbits = -0.0019550348358033505576274922418668121377
 
 // Cardinality estimates the number of distinct keys added to f.
 //
@@ -142,7 +142,7 @@ func (f *Filter) Cardinality() float64 {
 	// p0 = (1-1/BlockBits)^k.
 	//
 	// logProb0Inv = 1 / log(p0) = 1 / (k*log(1-1/BlockBits)).
-	logProb0Inv := 1 / (k * log1M1Dblockbits)
+	logProb0Inv := 1 / (k * log1minus1divBlockbits)
 
 	var n float64
 	for i := range f.b {
