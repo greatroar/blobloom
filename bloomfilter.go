@@ -243,22 +243,21 @@ type block [blockSize]uint32
 
 // getbit reports whether bit (i modulo BlockBits) is set.
 func (b *block) getbit(i uint32) bool {
-	const n = uint32(len(*b))
-	x := (*b)[(i/wordSize)%n] & (1 << (i % wordSize))
+	bit := uint32(1) << (i % wordSize)
+	x := (*b)[(i/wordSize)%blockSize] & bit
 	return x != 0
 }
 
 // setbit sets bit (i modulo BlockBits) of b.
 func (b *block) setbit(i uint32) {
-	const n = uint32(len(*b))
-	(*b)[(i/wordSize)%n] |= 1 << (i % wordSize)
+	bit := uint32(1) << (i % wordSize)
+	(*b)[(i/wordSize)%blockSize] |= bit
 }
 
 // setbit sets bit (i modulo BlockBits) of b, atomically.
 func (b *block) setbitAtomic(i uint32) {
-	const n = uint32(len(*b))
 	bit := uint32(1) << (i % wordSize)
-	p := &(*b)[(i/wordSize)%n]
+	p := &(*b)[(i/wordSize)%blockSize]
 	for {
 		old := atomic.LoadUint32(p)
 		if old&bit != 0 {
