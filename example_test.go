@@ -63,8 +63,19 @@ func Example_fnv() {
 
 func Example_sha224() {
 	// If you have items addressed by a cryptographic hash,
-	// you can use that as the hash value for a Bloom filter.
+	// you can use a prefix of it as the hash value for a Bloom filter.
+	//
+	// If the cryptohashes denote objects from an untrusted source,
+	// the Bloom filter can be tricked into giving false positives for
+	// chosen objects, because it only uses a small part of the hash
+	// that can easily be broken (by a birthday attack). If that can
+	// cause problems in your application, first run SipHash on the
+	// full cryptohash to get the hash value for the Bloom filter:
+	//
+	//	import "github.com/dchest/siphash"
+	//	h := siphash.Hash(secret1, secret2, key[:])
 
+	// A list of files, identified by their SHA-224.
 	files := []string{
 		"\x85\x52\xd8\xb7\xa7\xdc\x54\x76\xcb\x9e\x25\xde\xe6\x9a\x80\x91\x29\x07\x64\xb7\xf2\xa6\x4f\xe6\xe7\x8e\x95\x68",
 		"\xa0\xad\x8f\x63\x90\x72\x74\x7b\xc3\x43\x09\x45\x94\x0e\x7c\x73\xb8\x34\x93\xf1\x77\x90\x0f\xd2\x7d\x09\x65\x94",
