@@ -4,7 +4,7 @@ set -e -x
 
 if [ "$(go env GOARCH)" = amd64 ]; then
 	go test
-	go test -tags purego
+	go test -tags nounsafe
 	GOARCH=386 go test
 else
 	go test

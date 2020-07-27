@@ -197,6 +197,15 @@ func (f *Filter) NumBits() uint64 {
 	return BlockBits * uint64(len(f.b))
 }
 
+func checkBinop(f, g *Filter) {
+	if len(f.b) != len(g.b) {
+		panic("Bloom filters do not have the same number of bits")
+	}
+	if f.k != g.k {
+		panic("Bloom filters do not have the same number of hash functions")
+	}
+}
+
 // Intersect sets f to the intersection of f and g.
 //
 // Intersect panics when f and g do not have the same number of bits and
@@ -208,30 +217,14 @@ func (f *Filter) NumBits() uint64 {
 //
 // After Intersect, the estimates from Cardinality and FPRate should be
 // considered unreliable.
-func (f *Filter) Intersect(g *Filter) {
-	if len(f.b) != len(g.b) {
-		panic("Bloom filters do not have the same number of bits")
-	}
-	if f.k != g.k {
-		panic("Bloom filters do not have the same number of hash functions")
-	}
-	intersect(f.b, g.b)
-}
+func (f *Filter) Intersect(g *Filter) { f.intersect(g) }
 
 // Union sets f to the union of f and g.
 //
 // Union panics when f and g do not have the same number of bits and
 // hash functions. Both Filters must be using the same hash function(s),
 // but Union cannot check this.
-func (f *Filter) Union(g *Filter) {
-	if len(f.b) != len(g.b) {
-		panic("Bloom filters do not have the same number of bits")
-	}
-	if f.k != g.k {
-		panic("Bloom filters do not have the same number of hash functions")
-	}
-	union(f.b, g.b)
-}
+func (f *Filter) Union(g *Filter) { f.union(g) }
 
 const (
 	wordSize  = 32

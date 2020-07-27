@@ -10,18 +10,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !amd64 appengine !gc purego
+// +build !amd64
 
 package blobloom
 
-func intersect(a, b []block) {
-	for i := range a {
-		a[i].intersect(&b[i])
+func (f *Filter) intersect(g *Filter) {
+	checkBinop(f, g)
+	for i := range f.b {
+		f.b[i].intersect(&g.b[i])
 	}
 }
 
-func union(a, b []block) {
-	for i := range a {
-		a[i].union(&b[i])
+func (f *Filter) union(g *Filter) {
+	checkBinop(f, g)
+	for i := range f.b {
+		f.b[i].union(&g.b[i])
 	}
 }
