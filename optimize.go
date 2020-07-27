@@ -92,11 +92,11 @@ func Optimize(cfg Config) (nbits uint64, nhashes int) {
 	}
 
 	ceilK, floorK := math.Floor(k), math.Ceil(k)
-	fprCeil, _ := fpRate(c, math.Ceil(k))
 	if ceilK == floorK {
 		return nbits, int(ceilK)
 	}
 
+	fprCeil, _ := fpRate(c, math.Ceil(k))
 	fprFloor, _ := fpRate(c, math.Floor(k))
 	if fprFloor < fprCeil {
 		k = floorK
