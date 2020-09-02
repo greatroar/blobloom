@@ -10,9 +10,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !amd64
+// +build !amd64 nounsafe
 
 package blobloom
+
+import "math/bits"
 
 func (f *Filter) intersect(g *Filter) {
 	checkBinop(f, g)
@@ -26,4 +28,62 @@ func (f *Filter) union(g *Filter) {
 	for i := range f.b {
 		f.b[i].union(&g.b[i])
 	}
+}
+
+func (b *block) intersect(c *block) {
+	b[0] &= c[0]
+	b[1] &= c[1]
+	b[2] &= c[2]
+	b[3] &= c[3]
+	b[4] &= c[4]
+	b[5] &= c[5]
+	b[6] &= c[6]
+	b[7] &= c[7]
+	b[8] &= c[8]
+	b[9] &= c[9]
+	b[10] &= c[10]
+	b[11] &= c[11]
+	b[12] &= c[12]
+	b[13] &= c[13]
+	b[14] &= c[14]
+	b[15] &= c[15]
+}
+
+func (b *block) union(c *block) {
+	b[0] |= c[0]
+	b[1] |= c[1]
+	b[2] |= c[2]
+	b[3] |= c[3]
+	b[4] |= c[4]
+	b[5] |= c[5]
+	b[6] |= c[6]
+	b[7] |= c[7]
+	b[8] |= c[8]
+	b[9] |= c[9]
+	b[10] |= c[10]
+	b[11] |= c[11]
+	b[12] |= c[12]
+	b[13] |= c[13]
+	b[14] |= c[14]
+	b[15] |= c[15]
+}
+
+func (b *block) onescount() (n int) {
+	n += bits.OnesCount32(b[0])
+	n += bits.OnesCount32(b[1])
+	n += bits.OnesCount32(b[2])
+	n += bits.OnesCount32(b[3])
+	n += bits.OnesCount32(b[4])
+	n += bits.OnesCount32(b[5])
+	n += bits.OnesCount32(b[6])
+	n += bits.OnesCount32(b[7])
+	n += bits.OnesCount32(b[8])
+	n += bits.OnesCount32(b[9])
+	n += bits.OnesCount32(b[10])
+	n += bits.OnesCount32(b[11])
+	n += bits.OnesCount32(b[12])
+	n += bits.OnesCount32(b[13])
+	n += bits.OnesCount32(b[14])
+	n += bits.OnesCount32(b[15])
+	return n
 }
