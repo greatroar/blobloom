@@ -6,8 +6,9 @@ packages. To run these benchmarks, pick a build tag from the following table:
 | (no tag) | This package with pre-hashed inputs                         |
 | bbloom   | github.com/ipfs/bbloom                                      |
 | boom     | github.com/tylertreat/BoomFilters ("classic" Bloom filters) |
-| xxhash   | This package + github.com/cespare/xxhash                    |
 | willf    | github.com/willf/bloom                                      |
+| xxhash   | This package + github.com/cespare/xxhash                    |
+| xxh3     | This package + github.com/zeebo/xxh3                        |
 
 Then invoke go test as follows:
 

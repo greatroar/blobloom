@@ -11,6 +11,7 @@ require (
 	github.com/tylertreat/BoomFilters v0.0.0-20200520150052-42a7b4300c0c
 	github.com/willf/bitset v1.1.10 // indirect
 	github.com/willf/bloom v2.0.3+incompatible
+	github.com/zeebo/xxh3 v0.8.2
 )
 
 replace github.com/greatroar/blobloom => ../

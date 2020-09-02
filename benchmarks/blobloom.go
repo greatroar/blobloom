@@ -10,10 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !bbloom
-// +build !boom
-// +build !willf
-// +build !xxhash
+// +build !bbloom,!boom,!willf,!xxh3,!xxhash
 
 package benchmarks
 
