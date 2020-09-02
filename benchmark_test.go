@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !benchcompare
+// Benchmarks for the basic operations live in the benchmarks/ subpackage.
 
 package blobloom
 
