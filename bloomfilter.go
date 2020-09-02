@@ -23,8 +23,8 @@
 //
 // Compared to standard Bloom filters, blocked Bloom filters use the CPU
 // cache more efficiently. A blocked Bloom filter is an array of ordinary
-// Bloom filters of fixed size BlockBits (the blocks). The first hash of a
-// key selects the block to use.
+// Bloom filters of fixed size BlockBits (the blocks). The upper half of the
+// hash selects the block to use.
 //
 // To achieve the same false positive rate (FPR) as a standard Bloom filter,
 // a blocked Bloom filter requires more memory. For an FPR of at most 2e-6
