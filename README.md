@@ -9,14 +9,6 @@ data structure. To quote [Daniel Lemire](https://lemire.me/blog/2019/12/19/xor-f
 they have unbeatable speed. See the directory ``benchmarks/`` to determine
 exactly how fast Blobloom is compared to other packages.
 
-Blobloom does not provide hash functions for use with the Bloom filter.
-Instead, it requires client code to supply hash values. That means you get to
-pick the hash algorithm that is fastest for your data, use a secure hash such
-as SipHash or reuse hashes that you've already computed.
-You only need to supply one 64-bit hash value as Blobloom uses the
-[enhanced double hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
-algorithm to synthesize any further hash values it needs.
-
 Usage
 -----
 
@@ -48,10 +40,31 @@ for further usage information and examples.
 Hash functions
 --------------
 
-If you need a fast hash function, try [xxhash](https://github.com/cespare/xxhash).
-If you need a secure hash function, look at [siphash](https://github.com/dchest/siphash).
-If you're using Go 1.14, [maphash](https://golang.org/pkg/hash/maphash/)
-may suit your needs.
+Blobloom does not provide hash functions. Instead, it requires client code to
+represent each key as a single 64-bit hash value, leaving it to the user to
+pick the right hash function for a particular problem. Here are some general
+suggestions:
+
+* If you use Bloom filters to speed up access to a key-value store, you might
+want to look at [xxh3](https://github.com/zeebo/xxh3) or [xxhash](
+https://github.com/cespare/xxhash).
+* If your keys are cryptographic hashes, consider using the first 8 bytes of those hashes.
+* If you use Bloom filters to make probabilistic decisions, a randomized hash
+function such as [siphash](https://github.com/dchest/siphash) or [maphash](
+https://golang.org/pkg/hash/maphash) may prevent the same false positives
+occurring every time.
+
+When evaluating a hash function, or designing a custom one, be aware that
+Blobloom uses the [fastrange](
+https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/)
+reduction on the upper 32 bits of the hash to select a block, and
+[enhanced double hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
+on the upper and lower 32-bit halves, followed by modulo 2<sup>9</sup>,
+to derive bit indices.
+In particular, this means that casting a 32-bit hash to uint64 causes the
+Bloom filter to only use one block, wasting space and hurting precision.
+(These are details of the current implementation, not API guarantees.)
+
 
 License
 -------
