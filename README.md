@@ -69,6 +69,8 @@ Bloom filter to only use one block, wasting space and hurting precision.
 License
 -------
 
+Copyright © 2020 the Blobloom authors
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
