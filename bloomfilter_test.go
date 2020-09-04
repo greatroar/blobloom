@@ -114,6 +114,34 @@ func TestUse(t *testing.T) {
 	t.Logf("FPR = %.5f\n", fpr)
 }
 
+// Test robustness against 32-bit hash functions.
+func TestHash32(t *testing.T) {
+	const n = 400
+
+	f := NewOptimized(Config{
+		Capacity: n,
+		FPRate:   .01,
+	})
+
+	r := rand.New(rand.NewSource(32))
+
+	for i := 0; i < n; i++ {
+		f.Add(uint64(r.Uint32()))
+	}
+
+	const nrounds = 8
+	fp := 0
+	for i := n; i < nrounds*n; i++ {
+		if f.Has(uint64(r.Uint32())) {
+			fp++
+		}
+	}
+
+	fprate := float64(fp) / (nrounds * n)
+	t.Logf("FP rate = %.2f%%", 100*fprate)
+	assert.LessOrEqual(t, fprate, .1)
+}
+
 func TestDoubleHashing(t *testing.T) {
 	t.Parallel()
 

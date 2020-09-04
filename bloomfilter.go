@@ -25,7 +25,7 @@
 //
 // Compared to standard Bloom filters, blocked Bloom filters use the CPU
 // cache more efficiently. A blocked Bloom filter is an array of ordinary
-// Bloom filters of fixed size BlockBits (the blocks). The upper half of the
+// Bloom filters of fixed size BlockBits (the blocks). The lower half of the
 // hash selects the block to use.
 //
 // To achieve the same false positive rate (FPR) as a standard Bloom filter,
@@ -96,7 +96,7 @@ func New(nbits uint64, nhashes int) *Filter {
 // https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *Filter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	i := reducerange(h1, uint32(len(f.b)))
+	i := reducerange(h2, uint32(len(f.b)))
 	b := &f.b[i]
 
 	for i := 0; i+1 < f.k; i++ {
@@ -112,7 +112,7 @@ func (f *Filter) Add(h uint64) {
 // may call any other method on f concurrently with this method.
 func (f *Filter) AddAtomic(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	i := reducerange(h1, uint32(len(f.b)))
+	i := reducerange(h2, uint32(len(f.b)))
 	b := &f.b[i]
 
 	for i := 0; i+1 < f.k; i++ {
@@ -167,7 +167,7 @@ func (f *Filter) Clear() {
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	i := reducerange(h1, uint32(len(f.b)))
+	i := reducerange(h2, uint32(len(f.b)))
 	b := &f.b[i]
 
 	for i := 0; i+1 < f.k; i++ {

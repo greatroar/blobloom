@@ -57,12 +57,12 @@ occurring every time.
 When evaluating a hash function, or designing a custom one, be aware that
 Blobloom uses the [fastrange](
 https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/)
-reduction on the upper 32 bits of the hash to select a block, and
+reduction on the lower 32 bits of the hash to select a block, and
 [enhanced double hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
 on the upper and lower 32-bit halves, followed by modulo 2<sup>9</sup>,
 to derive bit indices.
 In particular, this means that casting a 32-bit hash to uint64 causes the
-Bloom filter to only use one block, wasting space and hurting precision.
+Bloom filter to perform suboptimally.
 (These are details of the current implementation, not API guarantees.)
 
 
