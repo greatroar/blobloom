@@ -82,7 +82,6 @@ func TestUse(t *testing.T) {
 
 	// Generate random hash values for n keys. Pretend the keys are all distinct,
 	// even if the hashes are not.
-	// Assume that 100k random SHA-256 values are all distinct.
 	r := rand.New(rand.NewSource(0xb1007))
 	hashes := make([]uint64, n)
 	for i := range hashes {
