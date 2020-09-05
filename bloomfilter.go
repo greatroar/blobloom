@@ -99,7 +99,7 @@ func (f *Filter) Add(h uint64) {
 	i := reducerange(h2, uint32(len(f.b)))
 	b := &f.b[i]
 
-	for i := 0; i+1 < f.k; i++ {
+	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		b.setbit(h1)
 	}
@@ -115,7 +115,7 @@ func (f *Filter) AddAtomic(h uint64) {
 	i := reducerange(h2, uint32(len(f.b)))
 	b := &f.b[i]
 
-	for i := 0; i+1 < f.k; i++ {
+	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		b.setbitAtomic(h1)
 	}
@@ -170,7 +170,7 @@ func (f *Filter) Has(h uint64) bool {
 	i := reducerange(h2, uint32(len(f.b)))
 	b := &f.b[i]
 
-	for i := 0; i+1 < f.k; i++ {
+	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		if !b.getbit(h1) {
 			return false
