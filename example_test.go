@@ -134,8 +134,9 @@ func ExampleFilter_Cardinality_infinity() {
 	// The reason blobloom does not do this itself is that it would cause
 	// contention in AddAtomic.
 
-	// Construct a Bloom filter with too many hash functions, to force +Inf.
-	f := blobloom.New(512, 999)
+	// This Bloom filter is constructed with too many hash functions
+	// to force +Inf.
+	f := blobloom.New(512, 100)
 	var numAdd int
 
 	add := func(h uint64) {
@@ -143,9 +144,9 @@ func ExampleFilter_Cardinality_infinity() {
 		numAdd++
 	}
 
-	add(1)
-	add(2)
-	add(3)
+	for i := 0; i < 200; i++ {
+		add(uint64(i))
+	}
 
 	estimate := f.Cardinality()
 	fmt.Printf("blobloom's estimate:    %.2f\n", estimate)
@@ -155,8 +156,8 @@ func ExampleFilter_Cardinality_infinity() {
 
 	// Output:
 	// blobloom's estimate:    +Inf
-	// number of calls to Add: 3
-	// combined estimate:      3.00
+	// number of calls to Add: 200
+	// combined estimate:      200.00
 }
 
 const nworkers = 4
