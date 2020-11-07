@@ -44,6 +44,7 @@ func TestSimple(t *testing.T) {
 		f := New(config.nbits, config.nhashes)
 		assert.GreaterOrEqual(t, f.NumBits(), config.nbits)
 		assert.LessOrEqual(t, f.NumBits(), config.nbits+BlockBits)
+		assert.True(t, f.Empty())
 
 		for _, k := range keys {
 			assert.False(t, f.Has(k))
@@ -51,11 +52,13 @@ func TestSimple(t *testing.T) {
 		for _, k := range keys {
 			f.Add(k)
 		}
+		assert.False(t, f.Empty())
 		for _, k := range keys {
 			assert.True(t, f.Has(k))
 		}
 
 		f.Clear()
+		assert.True(t, f.Empty())
 		for _, k := range keys {
 			assert.False(t, f.Has(k))
 		}

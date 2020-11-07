@@ -163,6 +163,16 @@ func (f *Filter) Clear() {
 	}
 }
 
+// Empty reports whether f contains no keys.
+func (f *Filter) Empty() bool {
+	for i := range f.b {
+		if f.b[i] != (block{}) {
+			return false
+		}
+	}
+	return true
+}
+
 // Has reports whether a key with hash value h has been added.
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
