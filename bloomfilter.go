@@ -252,14 +252,15 @@ func (b *block) setbit(i uint32) {
 func (b *block) setbitAtomic(i uint32) {
 	bit := uint32(1) << (i % wordSize)
 	p := &(*b)[(i/wordSize)%blockSize]
-	for {
-		old := atomic.LoadUint32(p)
-		if old&bit != 0 {
-			// Checking here instead of checking the return value from
-			// the CAS is between 25% and 50% faster on the benchmark.
-			return
-		}
-		new := old | bit
-		atomic.CompareAndSwapUint32(p, old, new)
+
+	// Go 1.15 won't inline a function with a for loop, so use goto.
+retry:
+	old := atomic.LoadUint32(p)
+	if old&bit != 0 {
+		// Checking here instead of checking the return value from
+		// the CAS is between 50% and 80% faster on the benchmark.
+		return
 	}
+	atomic.CompareAndSwapUint32(p, old, old|bit)
+	goto retry
 }
