@@ -127,6 +127,14 @@ func ExampleOptimize() {
 	// fpr = 0.001
 }
 
+var hashes [200]uint64
+
+func init() {
+	for i := range hashes {
+		hashes[i] = uint64(i)
+	}
+}
+
 func ExampleFilter_Cardinality_infinity() {
 	// To handle the case of Cardinality returning +Inf, track the number of
 	// calls to Add and compute the minimum.
@@ -137,21 +145,21 @@ func ExampleFilter_Cardinality_infinity() {
 	// This Bloom filter is constructed with too many hash functions
 	// to force +Inf.
 	f := blobloom.New(512, 100)
-	var numAdd int
+	var numAdded int
 
 	add := func(h uint64) {
 		f.Add(h)
-		numAdd++
+		numAdded++
 	}
 
-	for i := 0; i < 200; i++ {
-		add(uint64(i))
+	for _, h := range hashes {
+		add(h)
 	}
 
 	estimate := f.Cardinality()
 	fmt.Printf("blobloom's estimate:    %.2f\n", estimate)
-	fmt.Printf("number of calls to Add: %d\n", numAdd)
-	estimate = math.Min(estimate, float64(numAdd))
+	fmt.Printf("number of calls to Add: %d\n", numAdded)
+	estimate = math.Min(estimate, float64(numAdded))
 	fmt.Printf("combined estimate:      %.2f\n", estimate)
 
 	// Output:
