@@ -20,35 +20,39 @@ import "math"
 type Config struct {
 	// Capacity is the expected number of distinct keys to be added.
 	// More keys can always be added, but the false positive rate can be
-	// expected to drop below FPRate is the number exceeds the Capacity.
+	// expected to drop below FPRate if their number exceeds the Capacity.
 	Capacity uint64
 
 	// Desired lower bound on the false positive rate when the Bloom filter
-	// has been filled to capacity.
+	// has been filled to its capacity. FPRate must be between zero
+	// (exclusive) and one (inclusive).
 	FPRate float64
 
-	// Maximum size of the Bloom filter in bits. Zero means no limit.
+	// Maximum size of the Bloom filter in bits. Zero means the global
+	// MaxBits constant.
 	MaxBits uint64
 
 	// Trigger the "contains filtered or unexported fields" message for
-	// forward compatibility and to force the caller to use named fields.
+	// forward compatibility and force the caller to use named fields.
 	_ struct{}
 }
 
-// NewOptimized is shorthand for New(Optimize(cfg)).
-func NewOptimized(cfg Config) *Filter {
-	return New(Optimize(cfg))
+// NewOptimized is shorthand for New(Optimize(config)).
+func NewOptimized(config Config) *Filter {
+	return New(Optimize(config))
 }
 
 // Optimize returns numbers of keys and hash functions that achieve the
-// desired false positive described by cfg.
+// desired false positive described by config.
+//
+// Optimize panics when config.FPRate is invalid.
 //
 // The estimated number of bits is imprecise for false positives rates below
 // ca. 1e-15.
-func Optimize(cfg Config) (nbits uint64, nhashes int) {
+func Optimize(config Config) (nbits uint64, nhashes int) {
 	var (
-		n = float64(cfg.Capacity)
-		p = cfg.FPRate
+		n = float64(config.Capacity)
+		p = config.FPRate
 	)
 
 	if p <= 0 || p > 1 {
@@ -75,8 +79,8 @@ func Optimize(cfg Config) (nbits uint64, nhashes int) {
 	}
 
 	var maxbits uint64 = MaxBits
-	if cfg.MaxBits != 0 && cfg.MaxBits < maxbits {
-		maxbits = cfg.MaxBits
+	if config.MaxBits != 0 && config.MaxBits < maxbits {
+		maxbits = config.MaxBits
 	}
 	if nbits > maxbits {
 		nbits = maxbits

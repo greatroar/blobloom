@@ -147,3 +147,10 @@ func TestOptimizeOneBitOneHash(t *testing.T) {
 	assert.EqualValues(t, BlockBits, f.NumBits())
 	assert.Equal(t, 2, f.k)
 }
+
+func TestOptimizeInvalidFPRate(t *testing.T) {
+	t.Parallel()
+
+	assert.Panics(t, func() { Optimize(Config{FPRate: 0}) })
+	assert.Panics(t, func() { Optimize(Config{FPRate: 1.0000001}) })
+}
