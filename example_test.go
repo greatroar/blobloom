@@ -138,9 +138,6 @@ func init() {
 func ExampleFilter_Cardinality_infinity() {
 	// To handle the case of Cardinality returning +Inf, track the number of
 	// calls to Add and compute the minimum.
-	//
-	// The reason blobloom does not do this itself is that it would cause
-	// contention in AddAtomic.
 
 	// This Bloom filter is constructed with too many hash functions
 	// to force +Inf.
