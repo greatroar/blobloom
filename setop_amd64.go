@@ -22,7 +22,7 @@ import (
 )
 
 // Block reinterpreted as array of uint64.
-type block64 [blockSize / 2]uint64
+type block64 [BlockBits / 64]uint64
 
 func (f *Filter) intersect(g *Filter) {
 	checkBinop(f, g)

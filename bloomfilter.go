@@ -238,30 +238,30 @@ func (f *Filter) Intersect(g *Filter) { f.intersect(g) }
 func (f *Filter) Union(g *Filter) { f.union(g) }
 
 const (
-	wordSize  = 32
-	blockSize = BlockBits / wordSize
+	wordSize   = 32
+	blockWords = BlockBits / wordSize
 )
 
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
-type block [blockSize]uint32
+type block [blockWords]uint32
 
 // getbit reports whether bit (i modulo BlockBits) is set.
 func (b *block) getbit(i uint32) bool {
 	bit := uint32(1) << (i % wordSize)
-	x := (*b)[(i/wordSize)%blockSize] & bit
+	x := (*b)[(i/wordSize)%blockWords] & bit
 	return x != 0
 }
 
 // setbit sets bit (i modulo BlockBits) of b.
 func (b *block) setbit(i uint32) {
 	bit := uint32(1) << (i % wordSize)
-	(*b)[(i/wordSize)%blockSize] |= bit
+	(*b)[(i/wordSize)%blockWords] |= bit
 }
 
 // setbit sets bit (i modulo BlockBits) of b, atomically.
 func (b *block) setbitAtomic(i uint32) {
 	bit := uint32(1) << (i % wordSize)
-	p := &(*b)[(i/wordSize)%blockSize]
+	p := &(*b)[(i/wordSize)%blockWords]
 
 	// Go 1.15 won't inline a function with a for loop, so use goto.
 retry:
