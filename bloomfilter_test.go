@@ -62,6 +62,12 @@ func TestSimple(t *testing.T) {
 		for _, k := range keys {
 			assert.False(t, f.Has(k))
 		}
+
+		f.Fill()
+		assert.False(t, f.Empty())
+		for _, k := range keys {
+			assert.True(t, f.Has(k))
+		}
 	}
 }
 

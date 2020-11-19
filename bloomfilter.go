@@ -173,6 +173,16 @@ func (f *Filter) Empty() bool {
 	return true
 }
 
+// Fill set f to a completely full filter. After fill, Has returns true
+// for any key.
+func (f *Filter) Fill() {
+	for i := range f.b {
+		for j := range f.b[i] {
+			f.b[i][j] = ^uint32(0)
+		}
+	}
+}
+
 // Has reports whether a key with hash value h has been added.
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
