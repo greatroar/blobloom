@@ -17,14 +17,14 @@ Then invoke go test as follows:
 Omit -tags and its argument to run the benchmarks for Blobloom. These assume
 that the input keys (which are random strings) can be used as hashes without
 any processing. This reflects the original use case (in [Syncthing](
-https://syncthing.net)) where SHA-256 hashes where stored in a Bloom filter.
-If this does not describe your use case, benchmark with the tag blobloomxxhash
+https://syncthing.net)) where SHA-256 hashes were stored in a Bloom filter.
+If this does not describe your use case, benchmark with the tag xxhash
 to run the keys through the [xxhash](https://github.com/cespare/xxhash)
 function.
 
 On an Intel Core i7-3770k (3.5GHz), Blobloom is between two and four times
 faster than bbloom on a Bloom filter that can handle 100 million elements with
-an FPR of 1% (_1e2) or 0.1% (_1e3):
+an FPR of 1% (``*_1e2``) or 0.1% (``*_1e3``):
 
     Add1e8_1e2-8         166ns ± 1%    53ns ± 2%  -67.84%  (p=0.000 n=9+15)
     Add1e8_1e2-8         166ns ± 1%    66ns ±22%  -60.32%  (p=0.000 n=9+10)
