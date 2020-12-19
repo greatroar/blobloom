@@ -34,7 +34,7 @@ Test for presence of a key:
 		// Key is certainly not present in f.
 	}
 
-See the [package documentation](https://godoc.org/github.com/greatroar/blobloom)
+See the [package documentation](https://pkg.go.dev/github.com/greatroar/blobloom)
 for further usage information and examples.
 
 Hash functions
