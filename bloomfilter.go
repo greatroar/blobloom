@@ -129,13 +129,13 @@ const log1minus1divBlockbits = -0.0019550348358033505576274922418668121377
 
 // Cardinality estimates the number of distinct keys added to f.
 //
-// The return value is the maximum likelihood estimate of Papapetrou, Siberski
-// and Nejdl, summed over the blocks
-// (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
-//
 // The estimate is most reliable when f is filled to roughly its capacity.
 // It gets worse as f gets more densely filled. When one of the blocks is
 // entirely filled, the estimate becomes +Inf.
+//
+// The return value is the maximum likelihood estimate of Papapetrou, Siberski
+// and Nejdl, summed over the blocks
+// (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
 func (f *Filter) Cardinality() float64 {
 	k := float64(f.k) - 1
 
@@ -147,13 +147,13 @@ func (f *Filter) Cardinality() float64 {
 
 	var n float64
 	for i := range f.b {
-		ones := float64(f.b[i].onescount())
+		ones := f.b[i].onescount()
 		if ones == 0 {
 			continue
 		}
-		n += math.Log1p(-ones/BlockBits) * logProb0Inv
+		n += math.Log1p(-float64(ones) / BlockBits)
 	}
-	return n
+	return n * logProb0Inv
 }
 
 // Clear resets f to its empty state.
