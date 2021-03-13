@@ -69,7 +69,7 @@ Bloom filter to perform suboptimally.
 License
 -------
 
-Copyright © 2020 the Blobloom authors
+Copyright © 2020-2021 the Blobloom authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
