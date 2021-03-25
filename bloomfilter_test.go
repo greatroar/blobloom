@@ -20,7 +20,6 @@ import (
 	"encoding/hex"
 	"math"
 	"math/rand"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -172,38 +171,6 @@ func TestReducerange(t *testing.T) {
 		}
 		assert.Less(t, j, m)
 	}
-}
-
-func TestAtomic(t *testing.T) {
-	var (
-		ch  = make(chan uint64)
-		f   = New(1<<13, 4)
-		ref = New(1<<13, 4)
-	)
-
-	go func() {
-		r := rand.New(rand.NewSource(0xaeb15))
-		for i := 0; i < 1e4; i++ {
-			h := r.Uint64()
-			ref.Add(h)
-			ch <- h
-		}
-		close(ch)
-	}()
-
-	var wg sync.WaitGroup
-	for i := 0; i < 4; i++ {
-		wg.Add(1)
-		go func() {
-			for h := range ch {
-				f.AddAtomic(h)
-			}
-			wg.Done()
-		}()
-	}
-	wg.Wait()
-
-	assert.Equal(t, ref, f)
 }
 
 func TestCardinality(t *testing.T) {

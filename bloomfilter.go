@@ -37,10 +37,7 @@
 // https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
-import (
-	"math"
-	"sync/atomic"
-)
+import "math"
 
 // BlockBits is the number of bits per block and the minimum number of bits
 // in a Filter.
@@ -102,22 +99,6 @@ func (f *Filter) Add(h uint64) {
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		b.setbit(h1)
-	}
-}
-
-// AddAtomic atomically inserts a key with hash value h into f.
-//
-// This is a synchronized version of Add.
-// Multiple goroutines may call AddAtomic concurrently, but no goroutine
-// may call any other method on f concurrently with this method.
-func (f *Filter) AddAtomic(h uint64) {
-	h1, h2 := uint32(h>>32), uint32(h)
-	i := reducerange(h2, uint32(len(f.b)))
-	b := &f.b[i]
-
-	for i := 1; i < f.k; i++ {
-		h1, h2 = doublehash(h1, h2, i)
-		b.setbitAtomic(h1)
 	}
 }
 
@@ -266,21 +247,4 @@ func (b *block) getbit(i uint32) bool {
 func (b *block) setbit(i uint32) {
 	bit := uint32(1) << (i % wordSize)
 	(*b)[(i/wordSize)%blockWords] |= bit
-}
-
-// setbit sets bit (i modulo BlockBits) of b, atomically.
-func (b *block) setbitAtomic(i uint32) {
-	bit := uint32(1) << (i % wordSize)
-	p := &(*b)[(i/wordSize)%blockWords]
-
-	// Go 1.15 won't inline a function with a for loop, so use goto.
-retry:
-	old := atomic.LoadUint32(p)
-	if old&bit != 0 {
-		// Checking here instead of checking the return value from
-		// the CAS is between 50% and 80% faster on the benchmark.
-		return
-	}
-	atomic.CompareAndSwapUint32(p, old, old|bit)
-	goto retry
 }

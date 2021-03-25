@@ -18,66 +18,8 @@ package blobloom
 
 import (
 	"math/rand"
-	"sync"
 	"testing"
 )
-
-// Baseline for BenchmarkAddAtomic.
-func benchmarkAddLocked(b *testing.B, nbits uint64) {
-	const nhashes = 22
-
-	f := New(nbits, nhashes)
-	var mu sync.Mutex
-
-	b.ResetTimer()
-
-	b.RunParallel(func(pb *testing.PB) {
-		r := rand.New(rand.NewSource(rand.Int63()))
-		for pb.Next() {
-			mu.Lock()
-			f.Add(r.Uint64())
-			mu.Unlock()
-		}
-	})
-}
-
-func BenchmarkAddLocked128kB(b *testing.B) { benchmarkAddLocked(b, 1<<20) }
-func BenchmarkAddLocked1MB(b *testing.B)   { benchmarkAddLocked(b, 1<<23) }
-func BenchmarkAddLocked16MB(b *testing.B)  { benchmarkAddLocked(b, 1<<27) }
-
-func benchmarkAddAtomic(b *testing.B, nbits uint64) {
-	const nhashes = 22 // Large number of hashes to create collisions.
-
-	f := New(nbits, nhashes)
-
-	b.ResetTimer()
-
-	b.RunParallel(func(pb *testing.PB) {
-		r := rand.New(rand.NewSource(rand.Int63()))
-		for pb.Next() {
-			f.AddAtomic(r.Uint64())
-		}
-	})
-}
-
-func BenchmarkAddAtomic128kB(b *testing.B) { benchmarkAddAtomic(b, 1<<20) }
-func BenchmarkAddAtomic1MB(b *testing.B)   { benchmarkAddAtomic(b, 1<<23) }
-func BenchmarkAddAtomic16MB(b *testing.B)  { benchmarkAddAtomic(b, 1<<27) }
-
-func BenchmarkCardinalityDense(b *testing.B) {
-	f := New(1<<20, 2)
-	for i := range f.b {
-		for j := range f.b[i] {
-			f.b[i][j] = rand.Uint32()
-		}
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		f.Cardinality()
-	}
-}
 
 func BenchmarkCardinalitySparse(b *testing.B) {
 	f := New(1<<20, 2)

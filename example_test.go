@@ -182,9 +182,8 @@ func hash(key string) uint64 {
 func ExampleFilter_Union() {
 	// Union can be used to fill a Bloom filter using multiple goroutines.
 	//
-	// Each goroutine allocates a filter, so the memory use increases by
-	// a factor nworkers-1 compared to a sequential version or a version
-	// using AddAtomic.
+	// Each goroutine allocates a filter, so the memory use increases
+	// by a factor nworkers-1 compared to a sequential version.
 
 	keys := make(chan string, nworkers)
 	filters := make(chan *blobloom.Filter, nworkers)
