@@ -173,8 +173,8 @@ func (f *Filter) Empty() bool {
 	return true
 }
 
-// Fill set f to a completely full filter. After fill, Has returns true
-// for any key.
+// Fill set f to a completely full filter.
+// After Fill, Has returns true for any key.
 func (f *Filter) Fill() {
 	for i := range f.b {
 		for j := range f.b[i] {
@@ -236,7 +236,7 @@ func checkBinop(f, g *Filter) {
 // Since Bloom filters may return false positives, Has may return true for
 // a key that was not in both f and g.
 //
-// After Intersect, the estimates from Cardinality and FPRate should be
+// After Intersect, the estimates from f.Cardinality and f.FPRate should be
 // considered unreliable.
 func (f *Filter) Intersect(g *Filter) { f.intersect(g) }
 
