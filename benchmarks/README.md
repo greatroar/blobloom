@@ -22,24 +22,10 @@ If this does not describe your use case, benchmark with the tag xxhash
 to run the keys through the [xxhash](https://github.com/cespare/xxhash)
 function.
 
-On an Intel Core i7-3770k (3.5GHz), Blobloom is between two and four times
-faster than bbloom on a Bloom filter that can handle 100 million elements with
-an FPR of 1% (``*_1e2``) or 0.1% (``*_1e3``):
+The benchmarks are set up to work with the benchstat tool.
+To compare Blobloom+xxh3 to bbloom, do
 
-    Add1e8_1e2-8         166ns ± 1%    53ns ± 2%  -67.84%  (p=0.000 n=9+15)
-    Add1e8_1e2-8         166ns ± 1%    66ns ±22%  -60.32%  (p=0.000 n=9+10)
-    Add1e8_1e3-8         202ns ± 1%    91ns ± 2%  -55.00%  (p=0.000 n=10+10)
-    TestEmpty1e8_1e2-8  59.0ns ± 2%  13.8ns ± 1%  -76.57%  (p=0.000 n=5+10)
-    TestEmpty1e8_1e3-8  65.4ns ± 2%  14.3ns ± 3%  -78.11%  (p=0.001 n=5+10)
-    TestNeg1e8_1e2-8    64.4ns ± 2%  21.9ns ± 0%  -65.92%  (p=0.002 n=10+4)
-    TestPos1e8_1e2-8    68.9ns ± 4%  18.7ns ± 1%  -72.93%  (p=0.008 n=5+5)
-    TestPos1e8_1e3-8     106ns ± 8%    25ns ± 4%  -76.88%  (p=0.008 n=5+5)
-
-When we add in xxhash, it's still 40% faster:
-
-    Add1e8_1e2-8         166ns ± 1%    96ns ± 1%  -42.51%  (p=0.000 n=9+10)
-    Add1e8_1e3-8         202ns ± 1%   105ns ± 1%  -47.69%  (p=0.000 n=10+10)
-    TestNeg1e8_1e2-8    64.4ns ± 2%  37.4ns ± 1%  -41.90%  (p=0.001 n=10+5)
-    TestNeg1e8_1e3-8    62.5ns ± 2%  38.6ns ± 2%  -38.26%  (p=0.008 n=5+5)
-    TestPos1e8_1e2-8    68.9ns ± 4%  35.1ns ± 1%  -49.12%  (p=0.008 n=5+5)
-    TestPos1e8_1e3-8     106ns ± 8%    40ns ± 0%  -62.31%  (p=0.008 n=5+5)
+    go get golang.org/x/perf/cmd/benchstat
+    go test -bench=. -count=5 -timeout=30m -tags "bbloom" | tee bbloom.bench
+    go test -bench=. -count=5 -timeout=30m -tags "xx3"    | tee xxh3.bench
+    benchstat bbloom.bench xxh3.bench
