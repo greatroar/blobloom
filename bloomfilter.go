@@ -93,8 +93,7 @@ func New(nbits uint64, nhashes int) *Filter {
 // https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *Filter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	i := reducerange(h2, uint32(len(f.b)))
-	b := &f.b[i]
+	b := f.getblock(h2)
 
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
@@ -168,8 +167,7 @@ func (f *Filter) Fill() {
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	i := reducerange(h2, uint32(len(f.b)))
-	b := &f.b[i]
+	b := f.getblock(h2)
 
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
@@ -180,18 +178,12 @@ func (f *Filter) Has(h uint64) bool {
 	return true
 }
 
-// doublehash generates the hash values n1, n2 to use in iteration i of
+// doublehash generates the hash values to use in iteration i of
 // enhanced double hashing from the values h1, h2 of the previous iteration.
 func doublehash(h1, h2 uint32, i int) (uint32, uint32) {
 	h1 = h1 + h2
 	h2 = h2 + uint32(i)
 	return h1, h2
-}
-
-// reducerange maps i to an integer in the range [0,n).
-// https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
-func reducerange(i, n uint32) uint32 {
-	return uint32((uint64(i) * uint64(n)) >> 32)
 }
 
 // NumBits returns the number of bits of f.
@@ -235,6 +227,17 @@ const (
 
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
 type block [blockWords]uint32
+
+func (f *Filter) getblock(h2 uint32) *block {
+	i := reducerange(h2, uint32(len(f.b)))
+	return &f.b[i]
+}
+
+// reducerange maps i to an integer in the range [0,n).
+// https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
+func reducerange(i, n uint32) uint32 {
+	return uint32((uint64(i) * uint64(n)) >> 32)
+}
 
 // getbit reports whether bit (i modulo BlockBits) is set.
 func (b *block) getbit(i uint32) bool {
