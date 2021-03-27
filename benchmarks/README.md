@@ -6,6 +6,7 @@ packages. To run these benchmarks, pick a build tag from the following table:
 | (no tag) | This package with pre-hashed inputs                         |
 | bbloom   | github.com/ipfs/bbloom                                      |
 | boom     | github.com/tylertreat/BoomFilters ("classic" Bloom filters) |
+| sync     | This package's SyncFilter with pre-hashed inputs            |
 | willf    | github.com/willf/bloom                                      |
 | xxhash   | This package + github.com/cespare/xxhash                    |
 | xxh3     | This package + github.com/zeebo/xxh3                        |
@@ -29,3 +30,5 @@ To compare Blobloom+xxh3 to bbloom, do
     go test -bench=. -count=5 -timeout=30m -tags "bbloom" | tee bbloom.bench
     go test -bench=. -count=5 -timeout=30m -tags "xx3"    | tee xxh3.bench
     benchstat bbloom.bench xxh3.bench
+
+The sync benchmark only measures sequential performance.

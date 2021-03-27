@@ -21,6 +21,7 @@ import (
 	"hash/fnv"
 	"io"
 	"math"
+	"sync"
 
 	"github.com/greatroar/blobloom"
 )
@@ -183,7 +184,8 @@ func ExampleFilter_Union() {
 	// Union can be used to fill a Bloom filter using multiple goroutines.
 	//
 	// Each goroutine allocates a filter, so the memory use increases
-	// by a factor nworkers-1 compared to a sequential version.
+	// by a factor nworkers-1 compared to a sequential version
+	// or a SyncFilter.
 
 	keys := make(chan string, nworkers)
 	filters := make(chan *blobloom.Filter, nworkers)
@@ -204,6 +206,36 @@ func ExampleFilter_Union() {
 	f := <-filters
 	for i := 1; i < nworkers; i++ {
 		f.Union(<-filters)
+	}
+
+	// Output:
+}
+
+func ExampleSyncFilter() {
+	// Multiple goroutines can Add to a SyncFilter concurrently,
+	// without requiring separate synchronization.
+
+	f := blobloom.NewSync(1<<20, 6)
+	var wg sync.WaitGroup
+
+	add := func(hs []uint64) {
+		for _, h := range hs {
+			f.Add(h)
+		}
+		wg.Done()
+	}
+
+	wg.Add(2)
+	half := len(hashes) / 2
+	go add(hashes[:half])
+	go add(hashes[half:])
+
+	wg.Wait() // Wait for updating goroutines to complete.
+
+	for _, h := range hashes {
+		if !f.Has(h) {
+			fmt.Printf("hash %d added but not retrieved\n", h)
+		}
 	}
 
 	// Output:

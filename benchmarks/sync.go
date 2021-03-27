@@ -1,4 +1,4 @@
-// Copyright 2020 the Blobloom authors
+// Copyright 2021 the Blobloom authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !bbloom,!boom,!sync,!willf,!xxh3,!xxhash
+// +build sync
 
 package benchmarks
 
@@ -22,22 +22,22 @@ import (
 	"github.com/greatroar/blobloom"
 )
 
-type bloomFilter blobloom.Filter
+type bloomFilter blobloom.SyncFilter
 
 func (f *bloomFilter) Add(hash []byte) {
 	h := binary.BigEndian.Uint64(hash[:8])
-	((*blobloom.Filter)(f)).Add(h)
+	((*blobloom.SyncFilter)(f)).Add(h)
 }
 
 func (f *bloomFilter) Has(hash []byte) bool {
 	h := binary.BigEndian.Uint64(hash[:8])
-	return ((*blobloom.Filter)(f)).Has(h)
+	return ((*blobloom.SyncFilter)(f)).Has(h)
 }
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f := blobloom.NewOptimized(blobloom.Config{
+	f := blobloom.NewSync(blobloom.Optimize(blobloom.Config{
 		Capacity: uint64(capacity),
 		FPRate:   fpr,
-	})
+	}))
 	return (*bloomFilter)(f)
 }

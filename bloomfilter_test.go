@@ -123,6 +123,8 @@ func TestUse(t *testing.T) {
 
 // Test robustness against 32-bit hash functions.
 func TestHash32(t *testing.T) {
+	t.Parallel()
+
 	const n = 400
 
 	f := NewOptimized(Config{
@@ -303,6 +305,8 @@ func randomU64(n int, seed int64) []uint64 {
 }
 
 func TestUnionSmall(t *testing.T) {
+	t.Parallel()
+
 	f := New(BlockBits, 2)
 	g := New(BlockBits, 2)
 
