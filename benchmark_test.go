@@ -21,6 +21,21 @@ import (
 	"testing"
 )
 
+func BenchmarkCardinalityDense(b *testing.B) {
+	f := New(1<<20, 2)
+	for i := range f.b {
+		for j := range f.b[i] {
+			f.b[i][j] = rand.Uint32()
+		}
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		f.Cardinality()
+	}
+}
+
 func BenchmarkCardinalitySparse(b *testing.B) {
 	f := New(1<<20, 2)
 	for i := 0; i < len(f.b); i += 2 {
