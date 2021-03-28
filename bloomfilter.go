@@ -117,6 +117,10 @@ const log1minus1divBlockbits = -0.0019550348358033505576274922418668121377
 // and Nejdl, summed over the blocks
 // (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
 func (f *Filter) Cardinality() float64 {
+	return f.cardinality(onescount)
+}
+
+func (f *Filter) cardinality(onescount func(*block) int) float64 {
 	k := float64(f.k) - 1
 
 	// The probability of some bit not being set in a single insertion is
@@ -127,7 +131,7 @@ func (f *Filter) Cardinality() float64 {
 
 	var n float64
 	for i := range f.b {
-		ones := f.b[i].onescount()
+		ones := onescount(&f.b[i])
 		if ones == 0 {
 			continue
 		}

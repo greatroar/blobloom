@@ -15,24 +15,26 @@
 package blobloom
 
 import (
+	"math"
 	"math/rand"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSync(t *testing.T) {
 	const (
-		nbits    = 1 << 13
-		nhashes  = 4
+		nkeys    = 1e4
 		nworkers = 4
 	)
 
 	var (
-		hashes = make([]uint64, 1e4)
+		config = Config{Capacity: nkeys, FPRate: 1e-5}
+		hashes = make([]uint64, nkeys)
 		r      = rand.New(rand.NewSource(0xaeb15))
-		ref    = New(nhashes, nbits)
+		ref    = NewOptimized(config)
 	)
 
 	for i := range hashes {
@@ -41,23 +43,27 @@ func TestSync(t *testing.T) {
 		ref.Add(h)
 	}
 
+	card := ref.Cardinality()
+	require.False(t, ref.Empty())
+	require.False(t, math.IsInf(card, 0))
+
 	check := func(f *SyncFilter) {
 		t.Helper()
 
-		assert.False(t, ref.Empty())
 		assert.Equal(t, ref.b, f.b)
 
 		for i := 0; i < 2e4; i++ {
 			h := r.Uint64()
 			assert.Equal(t, ref.Has(h), f.Has(h))
 		}
+		assert.Equal(t, card, f.Cardinality())
 	}
 
 	t.Run("all hashes", func(t *testing.T) {
 		// Each worker adds all hashes to f.
 		t.Parallel()
 
-		f := NewSync(nhashes, nbits)
+		f := NewSyncOptimized(config)
 
 		var wg sync.WaitGroup
 		wg.Add(nworkers)
@@ -81,7 +87,7 @@ func TestSync(t *testing.T) {
 
 		var (
 			ch = make(chan uint64, nworkers)
-			f  = NewSync(nhashes, nbits)
+			f  = NewSyncOptimized(config)
 			wg sync.WaitGroup
 		)
 		wg.Add(nworkers)

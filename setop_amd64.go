@@ -18,6 +18,7 @@ package blobloom
 
 import (
 	"math/bits"
+	"sync/atomic"
 	"unsafe"
 )
 
@@ -118,7 +119,7 @@ func (f *Filter) union(g *Filter) {
 	}
 }
 
-func (b *block) onescount() (n int) {
+func onescount(b *block) (n int) {
 	p := (*block64)(unsafe.Pointer(&b[0]))
 
 	n += bits.OnesCount64(p[0])
@@ -130,5 +131,20 @@ func (b *block) onescount() (n int) {
 	n += bits.OnesCount64(p[6])
 	n += bits.OnesCount64(p[7])
 
-	return
+	return n
+}
+
+func onescountAtomic(b *block) (n int) {
+	p := (*block64)(unsafe.Pointer(&b[0]))
+
+	n += bits.OnesCount64(atomic.LoadUint64(&p[0]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[1]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[2]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[3]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[4]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[5]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[6]))
+	n += bits.OnesCount64(atomic.LoadUint64(&p[7]))
+
+	return n
 }

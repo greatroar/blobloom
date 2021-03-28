@@ -42,6 +42,11 @@ func NewOptimized(config Config) *Filter {
 	return New(Optimize(config))
 }
 
+// NewSyncOptimized is shorthand for New(Optimize(config)).
+func NewSyncOptimized(config Config) *SyncFilter {
+	return NewSync(Optimize(config))
+}
+
 // Optimize returns numbers of keys and hash functions that achieve the
 // desired false positive described by config.
 //

@@ -16,7 +16,10 @@
 
 package blobloom
 
-import "math/bits"
+import (
+	"math/bits"
+	"sync/atomic"
+)
 
 func (f *Filter) intersect(g *Filter) {
 	checkBinop(f, g)
@@ -70,7 +73,7 @@ func (b *block) union(c *block) {
 	b[15] |= c[15]
 }
 
-func (b *block) onescount() (n int) {
+func onescount(b *block) (n int) {
 	n += bits.OnesCount32(b[0])
 	n += bits.OnesCount32(b[1])
 	n += bits.OnesCount32(b[2])
@@ -87,5 +90,27 @@ func (b *block) onescount() (n int) {
 	n += bits.OnesCount32(b[13])
 	n += bits.OnesCount32(b[14])
 	n += bits.OnesCount32(b[15])
+
+	return n
+}
+
+func onescountAtomic(b *block) (n int) {
+	n += bits.OnesCount32(atomic.LoadUint32(&b[0]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[1]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[2]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[3]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[4]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[5]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[6]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[7]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[8]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[9]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[10]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[11]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[12]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[13]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[14]))
+	n += bits.OnesCount32(atomic.LoadUint32(&b[15]))
+
 	return n
 }
