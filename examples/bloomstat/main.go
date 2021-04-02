@@ -17,6 +17,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -108,8 +109,17 @@ func parseMem(s string) float64 {
 		size float64
 		unit string
 	)
-	_, err := fmt.Sscanf(s, "%f%s", &size, &unit)
-	if err != nil {
+	n, err := fmt.Sscanf(s, "%f%s", &size, &unit)
+	switch err {
+	case nil:
+	case io.EOF:
+		if n == 1 {
+			// Default to bytes.
+			unit = "b"
+		} else {
+			log.Fatal("max memory: invalid input")
+		}
+	default:
 		log.Fatal("max memory:", err)
 	}
 
