@@ -90,6 +90,11 @@ func TestFPRateCorrectC(t *testing.T) {
 	}
 }
 
+func TestFPRateInvalidInput(t *testing.T) {
+	assert.Panics(t, func() { FPRate(10, 0, 2) })
+	assert.Panics(t, func() { FPRate(10, 2, 0) })
+}
+
 func TestNewOptimizedMaxFPR(t *testing.T) {
 	t.Parallel()
 

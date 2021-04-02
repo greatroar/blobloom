@@ -141,6 +141,13 @@ func FPRate(nkeys, nbits uint64, nhashes int) float64 {
 }
 
 func fpRate(c, k float64) (p float64, iter int) {
+	switch {
+	case c == 0:
+		panic("0 bits per key is too few")
+	case k == 0:
+		panic("0 hashes is too few")
+	}
+
 	// Putze et al.'s Equation (3).
 	//
 	// The Poisson distribution has a single spike around its mean
