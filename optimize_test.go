@@ -124,28 +124,31 @@ func TestMaxBits(t *testing.T) {
 		assert.LessOrEqual(t, nbits, c.expect)
 		assert.EqualValues(t, 0, nbits%BlockBits)
 
-		// New should correct cases < BlockBits.
 		f := New(nbits, nhashes)
 		assert.Equal(t, c.expect, f.NumBits())
 	}
 }
 
-func TestOptimizeOneBitOneHash(t *testing.T) {
+func TestOptimizeFewBits(t *testing.T) {
 	t.Parallel()
 
-	// This configuration produces one hash function.
-	nbits, nhashes := Optimize(Config{
-		Capacity: 1,
-		FPRate:   .99,
-		MaxBits:  1,
-	})
-	assert.Equal(t, 1, nhashes)
-
-	// New fixes that up to two, because we need one hash function
-	// to select a block.
-	f := New(nbits, nhashes)
-	assert.EqualValues(t, BlockBits, f.NumBits())
-	assert.Equal(t, 2, f.k)
+	for _, config := range []Config{
+		{
+			Capacity: 1,
+			FPRate:   .99,
+			MaxBits:  1,
+		},
+		{
+			Capacity: 100000,
+			FPRate:   0.01,
+			MaxBits:  408,
+		},
+	} {
+		// Optimize should give nbits >= BlockBits.
+		nbits, nhashes := Optimize(config)
+		assert.EqualValues(t, BlockBits, nbits)
+		assert.Greater(t, nhashes, 0)
+	}
 }
 
 func TestOptimizeInvalidFPRate(t *testing.T) {

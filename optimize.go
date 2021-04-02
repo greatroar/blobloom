@@ -29,7 +29,7 @@ type Config struct {
 	FPRate float64
 
 	// Maximum size of the Bloom filter in bits. Zero means the global
-	// MaxBits constant.
+	// MaxBits constant. A value less than BlockBits means BlockBits.
 	MaxBits uint64
 
 	// Trigger the "contains filtered or unexported fields" message for
@@ -84,6 +84,9 @@ func Optimize(config Config) (nbits uint64, nhashes int) {
 	var maxbits uint64 = MaxBits
 	if config.MaxBits != 0 && config.MaxBits < maxbits {
 		maxbits = config.MaxBits
+		if maxbits < BlockBits {
+			maxbits = BlockBits
+		}
 	}
 	if nbits > maxbits {
 		nbits = maxbits
