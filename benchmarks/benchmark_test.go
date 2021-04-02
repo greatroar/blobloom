@@ -34,6 +34,8 @@ func makehashes(n int, seed int64) []byte {
 // In each iteration, add a SHA-256 into a Bloom filter with the given capacity
 // and desired FPR.
 func benchmarkAdd(b *testing.B, capacity int, fpr float64) {
+	b.Helper()
+
 	hashes := makehashes(b.N, 51251991517)
 	f := newBF(capacity, fpr)
 
@@ -57,6 +59,8 @@ func BenchmarkAdd1e8_1e3(b *testing.B) { benchmarkAdd(b, 1e8, 1e-3) }
 // In each iteration, test for a SHA-256 in a Bloom filter with the given capacity
 // and desired FPR that has that SHA-256 added to it.
 func benchmarkTestPos(b *testing.B, capacity int, fpr float64) {
+	b.Helper()
+
 	const ntest = 8192
 	hashes := makehashes(ntest, 0x5128351a)
 
@@ -94,6 +98,8 @@ func BenchmarkTestPos1e8_1e3(b *testing.B) { benchmarkTestPos(b, 1e8, 1e-3) }
 // In each iteration, test for the presence of a SHA-256 in a filled Bloom filter
 // with the given capacity and desired FPR.
 func benchmarkTestNeg(b *testing.B, capacity int, fpr float64) {
+	b.Helper()
+
 	r := rand.New(rand.NewSource(0xae694))
 	f := newBF(capacity, fpr)
 
@@ -133,6 +139,8 @@ func BenchmarkTestNeg1e8_1e3(b *testing.B) { benchmarkTestNeg(b, 1e8, 1e-3) }
 // In each iteration, test for the presence of a SHA-256 in an empty Bloom filter
 // with the given capacity and desired FPR.
 func benchmarkTestEmpty(b *testing.B, capacity int, fpr float64) {
+	b.Helper()
+
 	const ntest = 65536
 	hashes := makehashes(ntest, 054271)
 	f := newBF(capacity, fpr)

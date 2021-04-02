@@ -25,6 +25,8 @@ import (
 
 // Baseline for BenchmarkAddSync.
 func benchmarkAddLocked(b *testing.B, nbits uint64) {
+	b.Helper()
+
 	const nhashes = 22 // Large number of hashes to create collisions.
 
 	var (
@@ -50,6 +52,8 @@ func BenchmarkAddLocked1MB(b *testing.B)   { benchmarkAddLocked(b, 1<<23) }
 func BenchmarkAddLocked16MB(b *testing.B)  { benchmarkAddLocked(b, 1<<27) }
 
 func benchmarkAddSync(b *testing.B, nbits uint64) {
+	b.Helper()
+
 	const nhashes = 22 // Large number of hashes to create collisions.
 
 	f := NewSync(nbits, nhashes)

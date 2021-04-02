@@ -26,12 +26,11 @@ import (
 )
 
 const usage = `usage: bloomstat capacity false-positive-rate [max-memory]
-	The maximum memory may be specified as "10MB", "1.5GiB", etc.
-`
+	The maximum memory may be specified as "10MB", "1.5GiB", etc.`
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, usage)
+		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
 	}
 

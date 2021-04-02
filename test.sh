@@ -2,12 +2,13 @@
 
 set -e -x
 
+golangci-lint run . examples/*
+
+go test
+
 if [ "$(go env GOARCH)" = amd64 ]; then
-	go test
 	go test -tags nounsafe
 	GOARCH=386 go test
-else
-	go test
 fi
 
 for e in examples/*; do

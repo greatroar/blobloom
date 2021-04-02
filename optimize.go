@@ -55,10 +55,8 @@ func NewSyncOptimized(config Config) *SyncFilter {
 // The estimated number of bits is imprecise for false positives rates below
 // ca. 1e-15.
 func Optimize(config Config) (nbits uint64, nhashes int) {
-	var (
-		n = float64(config.Capacity)
-		p = config.FPRate
-	)
+	n := float64(config.Capacity)
+	p := config.FPRate
 
 	if p <= 0 || p > 1 {
 		panic("false positive rate for a Bloom filter must be > 0, <= 1")
@@ -172,7 +170,7 @@ func fpRate(c, k float64) (p float64, iter int) {
 		}
 	}
 
-	return
+	return p, iter
 }
 
 // FPRate computes an estimate of f's false positive rate after nkeys distinct
