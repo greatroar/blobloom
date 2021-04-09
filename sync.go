@@ -66,12 +66,27 @@ func (f *SyncFilter) Add(h uint64) {
 // and Nejdl, summed over the blocks
 // (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
 //
-// If other goroutines are concurrently updating f,
+// If other goroutines are concurrently adding keys,
 // the estimate may lie in between what would have been returned
 // before the concurrent updates started and what is returned
 // after the updates complete.
 func (f *SyncFilter) Cardinality() float64 {
 	return (*Filter)(f).cardinality(onescountAtomic)
+}
+
+// Empty reports whether f contains no keys.
+//
+// If other goroutines are concurrently adding keys,
+// Empty may return a false positive.
+func (f *SyncFilter) Empty() bool {
+	for i := range f.b {
+		for j := range f.b[i] {
+			if atomic.LoadUint32(&f.b[i][j]) != 0 {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // Fill set f to a completely full filter.

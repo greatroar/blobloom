@@ -51,6 +51,7 @@ func TestSync(t *testing.T) {
 		t.Helper()
 
 		assert.Equal(t, ref.b, f.b)
+		assert.False(t, f.Empty())
 
 		for i := 0; i < 2e4; i++ {
 			h := r.Uint64()
@@ -64,6 +65,7 @@ func TestSync(t *testing.T) {
 		t.Parallel()
 
 		f := NewSyncOptimized(config)
+		assert.True(t, f.Empty())
 
 		var wg sync.WaitGroup
 		wg.Add(nworkers)
