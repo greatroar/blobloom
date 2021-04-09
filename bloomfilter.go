@@ -86,11 +86,6 @@ func New(nbits uint64, nhashes int) *Filter {
 }
 
 // Add insert a key with hash value h into f.
-//
-// The upper and lower half of h are treated as two independent hashes.
-// These are used to derive further values using the enhanced double hashing
-// construction of Dillinger and Manolios,
-// https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *Filter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
 	b := f.getblock(h2)
@@ -184,6 +179,7 @@ func (f *Filter) Has(h uint64) bool {
 
 // doublehash generates the hash values to use in iteration i of
 // enhanced double hashing from the values h1, h2 of the previous iteration.
+// See https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func doublehash(h1, h2 uint32, i int) (uint32, uint32) {
 	h1 = h1 + h2
 	h2 = h2 + uint32(i)

@@ -46,11 +46,6 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 }
 
 // Add insert a key with hash value h into f.
-//
-// The upper and lower half of h are treated as two independent hashes.
-// These are used to derive further values using the enhanced double hashing
-// construction of Dillinger and Manolios,
-// https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf.
 func (f *SyncFilter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
 	b := (*Filter)(f).getblock(h2)

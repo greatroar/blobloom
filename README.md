@@ -1,37 +1,40 @@
 Blobloom
 ========
 
-A blocked Bloom filter package for Go (golang) with no runtime dependencies.
+A Bloom filter package for Go (golang) with no compile-time dependencies.
 
-[Blocked Bloom filters](https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf)
-are a cache-efficient variant of Bloom filters, the well-known approximate set
-data structure. To quote [Daniel Lemire](https://lemire.me/blog/2019/12/19/xor-filters-faster-and-smaller-than-bloom-filters/),
-they have unbeatable speed. See the directory ``benchmarks/`` to determine
-exactly how fast Blobloom is compared to other packages.
+This package implements a version of Bloom filters called [blocked Bloom filters](
+https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf),
+which get a speed boost from using the CPU cache more efficiently
+than regular Bloom filters.
+
+Unlike most Bloom filter packages for Go,
+this one doesn't run a hash function for you.
+That's a benefit if you need a custom hash
+or you want pick the fastest one for an application.
 
 Usage
 -----
 
-Construct a Bloom filter:
+To construct a Bloom filter, you need to know how many keys you want to store
+and what rate of false positives you find acceptable.
 
 	f := blobloom.NewOptimized(blobloom.Config{
 		Capacity: nkeys, // Expected number of keys.
 		FPRate:   1e-4,  // One in 10000 false positives is acceptable.
 	})
 
-Add a key:
+To add a key:
 
 	// import "github.com/cespare/xxhash/v2"
-	h := xxhash.Sum64String(key)
-	f.Add(h)
+	f.Add(xxhash.Sum64(key))
 
-Test for presence of a key:
+To test for the presence of a key in the filter:
 
-	h := xxhash.Sum64String(key)
-	if f.Has(h) {
+	if f.Has(xxhash.Sum64(key)) {
 		// Key is probably in f.
 	} else {
-		// Key is certainly not present in f.
+		// Key is certainly in f.
 	}
 
 See the [package documentation](https://pkg.go.dev/github.com/greatroar/blobloom)
@@ -54,16 +57,17 @@ function such as [siphash](https://github.com/dchest/siphash) or [maphash](
 https://golang.org/pkg/hash/maphash) may prevent the same false positives
 occurring every time.
 
-When evaluating a hash function, or designing a custom one, be aware that
-Blobloom uses the [fastrange](
+When evaluating a hash function, or designing a custom one,
+make sure it is a proper 64-bit hash.
+Casting a 32-bit hash to uint64 gives suboptimal results.
+So does passing integer keys in without running them through a mixing function.
+
+In implementation terms, Blobloom uses the [fastrange](
 https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/)
 reduction on the lower 32 bits of the hash to select a block, and
 [enhanced double hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
 on the upper and lower 32-bit halves, followed by modulo 2<sup>9</sup>,
-to derive bit indices.
-In particular, this means that casting a 32-bit hash to uint64 causes the
-Bloom filter to perform suboptimally.
-(These are details of the current implementation, not API guarantees.)
+to derive bit indices within the block.
 
 
 License
