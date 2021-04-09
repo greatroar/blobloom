@@ -79,8 +79,8 @@ func (f *SyncFilter) Cardinality() float64 {
 // If other goroutines are concurrently adding keys,
 // Empty may return a false positive.
 func (f *SyncFilter) Empty() bool {
-	for i := range f.b {
-		for j := range f.b[i] {
+	for i := 0; i < len(f.b); i++ {
+		for j := 0; j < blockWords; j++ {
 			if atomic.LoadUint32(&f.b[i][j]) != 0 {
 				return false
 			}
@@ -92,8 +92,8 @@ func (f *SyncFilter) Empty() bool {
 // Fill set f to a completely full filter.
 // After Fill, Has returns true for any key.
 func (f *SyncFilter) Fill() {
-	for i := range f.b {
-		for j := range f.b[i] {
+	for i := 0; i < len(f.b); i++ {
+		for j := 0; j < blockWords; j++ {
 			atomic.StoreUint32(&f.b[i][j], ^uint32(0))
 		}
 	}

@@ -137,14 +137,14 @@ func (f *Filter) cardinality(onescount func(*block) int) float64 {
 
 // Clear resets f to its empty state.
 func (f *Filter) Clear() {
-	for i := range f.b {
+	for i := 0; i < len(f.b); i++ {
 		f.b[i] = block{}
 	}
 }
 
 // Empty reports whether f contains no keys.
 func (f *Filter) Empty() bool {
-	for i := range f.b {
+	for i := 0; i < len(f.b); i++ {
 		if f.b[i] != (block{}) {
 			return false
 		}
@@ -155,8 +155,8 @@ func (f *Filter) Empty() bool {
 // Fill set f to a completely full filter.
 // After Fill, Has returns true for any key.
 func (f *Filter) Fill() {
-	for i := range f.b {
-		for j := range f.b[i] {
+	for i := 0; i < len(f.b); i++ {
+		for j := 0; j < blockWords; j++ {
 			f.b[i][j] = ^uint32(0)
 		}
 	}
