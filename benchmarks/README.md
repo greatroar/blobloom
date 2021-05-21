@@ -7,7 +7,7 @@ packages. To run these benchmarks, pick a build tag from the following table:
 | bbloom   | github.com/ipfs/bbloom                                      |
 | boom     | github.com/tylertreat/BoomFilters ("classic" Bloom filters) |
 | sync     | This package's SyncFilter with pre-hashed inputs            |
-| willf    | github.com/willf/bloom                                      |
+| willf    | github.com/bits-and-blooms/bloom (formerly willf/bloom)     |
 | xxhash   | This package + github.com/cespare/xxhash                    |
 | xxh3     | This package + github.com/zeebo/xxh3                        |
 
