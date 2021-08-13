@@ -57,8 +57,8 @@ func hash(key []byte) uint64 {
 }
 
 func normalize(word []byte) []byte {
-	word = bytes.ToLower(word)
 	word = bytes.TrimFunc(word, unicode.IsPunct)
+	word = bytes.ToLower(word)
 	return word
 }
 
