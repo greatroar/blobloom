@@ -9,8 +9,8 @@ require (
 	github.com/greatroar/blobloom v0.6.0
 	github.com/ipfs/bbloom v0.0.4
 	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
-	github.com/zeebo/xxh3 v0.10.0
-	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
+	github.com/zeebo/xxh3 v0.12.0
+	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 )
 
 replace github.com/greatroar/blobloom => ../
