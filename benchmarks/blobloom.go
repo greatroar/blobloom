@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !bbloom,!boom,!sync,!willf,!xxh3,!xxhash
+// +build !bbloom,!boom,!devopsfaith,!sync,!willf,!xxh3,!xxhash
 
 package benchmarks
 
