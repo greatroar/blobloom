@@ -26,8 +26,9 @@ import "sync/atomic"
 //		lock sync.Mutex
 //	}
 //
-// with each method taking and releasing the lock.
-// See the method descriptions for exceptions.
+// with each method taking and releasing the lock,
+// but is implemented much more efficiently.
+// See the method descriptions for exceptions to the previous rule.
 type SyncFilter struct {
 	b []block // Shards.
 	k int     // Number of hash functions required.
@@ -89,7 +90,7 @@ func (f *SyncFilter) Empty() bool {
 	return true
 }
 
-// Fill set f to a completely full filter.
+// Fill sets f to a completely full filter.
 // After Fill, Has returns true for any key.
 func (f *SyncFilter) Fill() {
 	for i := 0; i < len(f.b); i++ {
