@@ -22,6 +22,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"hash/maphash"
 	"log"
 	"os"
 	"unicode"
@@ -37,7 +38,7 @@ func main() {
 
 	for sc.Scan() {
 		word := normalize(sc.Bytes())
-		if !dict.Has(hash(word)) {
+		if !dict.has(word) {
 			fmt.Printf(">>> %s\n", word)
 		}
 	}
@@ -46,14 +47,28 @@ func main() {
 	}
 }
 
-// FNV1a hash function.
-func hash(key []byte) uint64 {
-	var h uint64 = 0xcbf29ce484222325
-	for _, c := range key {
-		h ^= uint64(c)
-		h *= 0x100000001b3
+// A Bloom filter with a randomized hash function.
+type bloomfilter struct {
+	*blobloom.Filter
+	maphash.Seed
+}
+
+func newBloomfilter(capacity uint64, fprate float64) *bloomfilter {
+	cfg := blobloom.Config{Capacity: capacity, FPRate: .001}
+	return &bloomfilter{
+		Filter: blobloom.NewOptimized(cfg),
+		Seed:   maphash.MakeSeed(),
 	}
-	return h
+}
+
+func (f *bloomfilter) add(key []byte)      { f.Filter.Add(f.hash(key)) }
+func (f *bloomfilter) has(key []byte) bool { return f.Filter.Has(f.hash(key)) }
+
+func (f *bloomfilter) hash(key []byte) uint64 {
+	var h maphash.Hash
+	h.SetSeed(f.Seed)
+	h.Write(key)
+	return h.Sum64()
 }
 
 func normalize(word []byte) []byte {
@@ -66,7 +81,7 @@ func normalize(word []byte) []byte {
 // an estimate of the average length of a word. This comes close for English.
 const avgWordLength = 10
 
-func loadDictionary() *blobloom.Filter {
+func loadDictionary() *bloomfilter {
 	f, err := os.Open("/usr/share/dict/words")
 	if err != nil {
 		log.Fatal(err)
@@ -79,14 +94,11 @@ func loadDictionary() *blobloom.Filter {
 	}
 	filesize := uint64(info.Size())
 
-	dict := blobloom.NewOptimized(blobloom.Config{
-		Capacity: filesize / avgWordLength,
-		FPRate:   .001,
-	})
+	dict := newBloomfilter(filesize/avgWordLength, .001)
 
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
-		dict.Add(hash(normalize(sc.Bytes())))
+		dict.add(normalize(sc.Bytes()))
 		filesize-- // Subtract newline, for fairness.
 	}
 	if err := sc.Err(); err != nil {

@@ -37,7 +37,8 @@ To test for the presence of a key in the filter:
 		// Key is certainly in f.
 	}
 
-See the [package documentation](https://pkg.go.dev/github.com/greatroar/blobloom)
+See the examples directory and the
+[package documentation](https://pkg.go.dev/github.com/greatroar/blobloom)
 for further usage information and examples.
 
 Hash functions
