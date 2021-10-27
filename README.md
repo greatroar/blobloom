@@ -21,7 +21,7 @@ and what rate of false positives you find acceptable.
 
 	f := blobloom.NewOptimized(blobloom.Config{
 		Capacity: nkeys, // Expected number of keys.
-		FPRate:   1e-4,  // One in 10000 false positives is acceptable.
+		FPRate:   1e-4,  // Accept one false positive per 10,000 lookups.
 	})
 
 To add a key:
@@ -37,7 +37,11 @@ To test for the presence of a key in the filter:
 		// Key is certainly in f.
 	}
 
-See the examples directory and the
+The false positive rate is defined as usual:
+if you look up 10,000 random keys in a Bloom filter filled to capacity,
+an expected one of those is a false positive for FPRate 1e-4.
+
+See the examples/ directory and the
 [package documentation](https://pkg.go.dev/github.com/greatroar/blobloom)
 for further usage information and examples.
 
@@ -54,21 +58,14 @@ want to look at [xxh3](https://github.com/zeebo/xxh3) or [xxhash](
 https://github.com/cespare/xxhash).
 * If your keys are cryptographic hashes, consider using the first 8 bytes of those hashes.
 * If you use Bloom filters to make probabilistic decisions, a randomized hash
-function such as [siphash](https://github.com/dchest/siphash) or [maphash](
-https://golang.org/pkg/hash/maphash) may prevent the same false positives
-occurring every time.
+function such as [maphash](https://golang.org/pkg/hash/maphash) should prevent
+the same false positives occurring every time.
 
 When evaluating a hash function, or designing a custom one,
-make sure it is a proper 64-bit hash.
+make sure it is a 64-bit hash that properly mixes its input bits.
 Casting a 32-bit hash to uint64 gives suboptimal results.
 So does passing integer keys in without running them through a mixing function.
 
-In implementation terms, Blobloom uses the [fastrange](
-https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/)
-reduction on the lower 32 bits of the hash to select a block, and
-[enhanced double hashing](https://www.ccs.neu.edu/home/pete/pub/bloom-filters-verification.pdf)
-on the upper and lower 32-bit halves, followed by modulo 2<sup>9</sup>,
-to derive bit indices within the block.
 
 
 License
