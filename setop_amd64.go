@@ -27,8 +27,6 @@ import (
 type block64 [BlockBits / 64]uint64
 
 func (f *Filter) intersect(g *Filter) {
-	checkBinop(f, g)
-
 	a, b := f.b, g.b
 	for len(a) >= 2 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
@@ -74,8 +72,6 @@ func (f *Filter) intersect(g *Filter) {
 }
 
 func (f *Filter) union(g *Filter) {
-	checkBinop(f, g)
-
 	a, b := f.b, g.b
 	for len(a) >= 2 {
 		p := (*block64)(unsafe.Pointer(&a[0]))

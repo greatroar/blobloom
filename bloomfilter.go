@@ -211,14 +211,20 @@ func checkBinop(f, g *Filter) {
 //
 // After Intersect, the estimates from f.Cardinality and f.FPRate should be
 // considered unreliable.
-func (f *Filter) Intersect(g *Filter) { f.intersect(g) }
+func (f *Filter) Intersect(g *Filter) {
+	checkBinop(f, g)
+	f.intersect(g)
+}
 
 // Union sets f to the union of f and g.
 //
 // Union panics when f and g do not have the same number of bits and
 // hash functions. Both Filters must be using the same hash function(s),
 // but Union cannot check this.
-func (f *Filter) Union(g *Filter) { f.union(g) }
+func (f *Filter) Union(g *Filter) {
+	checkBinop(f, g)
+	f.union(g)
+}
 
 const (
 	wordSize   = 32

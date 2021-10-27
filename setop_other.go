@@ -23,14 +23,12 @@ import (
 )
 
 func (f *Filter) intersect(g *Filter) {
-	checkBinop(f, g)
 	for i := range f.b {
 		f.b[i].intersect(&g.b[i])
 	}
 }
 
 func (f *Filter) union(g *Filter) {
-	checkBinop(f, g)
 	for i := range f.b {
 		f.b[i].union(&g.b[i])
 	}
