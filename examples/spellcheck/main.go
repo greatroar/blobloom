@@ -67,7 +67,7 @@ func (f *bloomfilter) has(key []byte) bool { return f.Filter.Has(f.hash(key)) }
 func (f *bloomfilter) hash(key []byte) uint64 {
 	var h maphash.Hash
 	h.SetSeed(f.Seed)
-	h.Write(key)
+	_, _ = h.Write(key)
 	return h.Sum64()
 }
 
