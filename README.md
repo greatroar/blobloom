@@ -34,7 +34,7 @@ To test for the presence of a key in the filter:
 	if f.Has(xxhash.Sum64(key)) {
 		// Key is probably in f.
 	} else {
-		// Key is certainly in f.
+		// Key is certainly not in f.
 	}
 
 The false positive rate is defined as usual:
