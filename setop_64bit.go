@@ -29,7 +29,7 @@ type block64 [BlockBits / 64]uint64
 
 func (f *Filter) intersect(g *Filter) {
 	a, b := f.b, g.b
-	for len(a) >= 2 {
+	for len(a) >= 2 && len(b) >= 2 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
 		q := (*block64)(unsafe.Pointer(&b[0]))
 
@@ -57,7 +57,7 @@ func (f *Filter) intersect(g *Filter) {
 		a, b = a[2:], b[2:]
 	}
 
-	if len(a) > 0 {
+	if len(a) > 0 && len(b) > 0 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
 		q := (*block64)(unsafe.Pointer(&b[0]))
 
@@ -74,7 +74,7 @@ func (f *Filter) intersect(g *Filter) {
 
 func (f *Filter) union(g *Filter) {
 	a, b := f.b, g.b
-	for len(a) >= 2 {
+	for len(a) >= 2 && len(b) >= 2 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
 		q := (*block64)(unsafe.Pointer(&b[0]))
 
@@ -102,7 +102,7 @@ func (f *Filter) union(g *Filter) {
 		a, b = a[2:], b[2:]
 	}
 
-	if len(a) > 0 {
+	if len(a) > 0 && len(b) > 0 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
 		q := (*block64)(unsafe.Pointer(&b[0]))
 
