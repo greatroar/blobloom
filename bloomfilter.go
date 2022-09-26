@@ -64,6 +64,15 @@ type Filter struct {
 // single hash passed in by the client. It is silently increased to two if
 // a lower value is given.
 func New(nbits uint64, nhashes int) *Filter {
+	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
+
+	return &Filter{
+		b: make([]block, nbits/BlockBits),
+		k: nhashes,
+	}
+}
+
+func fixBitsAndHashes(nbits uint64, nhashes int) (uint64, int) {
 	if nbits < 1 {
 		nbits = BlockBits
 	}
@@ -79,16 +88,13 @@ func New(nbits uint64, nhashes int) *Filter {
 		nbits += BlockBits - nbits%BlockBits
 	}
 
-	return &Filter{
-		b: make([]block, nbits/BlockBits),
-		k: nhashes,
-	}
+	return nbits, nhashes
 }
 
 // Add insert a key with hash value h into f.
 func (f *Filter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := f.getblock(h2)
+	b := getblock(f.b, h2)
 
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
@@ -112,11 +118,11 @@ const log1minus1divBlockbits = -0.0019550348358033505576274922418668121377
 // and Nejdl, summed over the blocks
 // (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
 func (f *Filter) Cardinality() float64 {
-	return f.cardinality(onescount)
+	return cardinality(f.k, f.b, onescount)
 }
 
-func (f *Filter) cardinality(onescount func(*block) int) float64 {
-	k := float64(f.k) - 1
+func cardinality(nhashes int, b []block, onescount func(*block) int) float64 {
+	k := float64(nhashes - 1)
 
 	// The probability of some bit not being set in a single insertion is
 	// p0 = (1-1/BlockBits)^k.
@@ -125,8 +131,8 @@ func (f *Filter) cardinality(onescount func(*block) int) float64 {
 	logProb0Inv := 1 / (k * log1minus1divBlockbits)
 
 	var n float64
-	for i := range f.b {
-		ones := onescount(&f.b[i])
+	for i := range b {
+		ones := onescount(&b[i])
 		if ones == 0 {
 			continue
 		}
@@ -166,7 +172,7 @@ func (f *Filter) Fill() {
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := f.getblock(h2)
+	b := getblock(f.b, h2)
 
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
@@ -234,9 +240,9 @@ const (
 // A block is a fixed-size Bloom filter, used as a shard of a Filter.
 type block [blockWords]uint32
 
-func (f *Filter) getblock(h2 uint32) *block {
-	i := reducerange(h2, uint32(len(f.b)))
-	return &f.b[i]
+func getblock(b []block, h2 uint32) *block {
+	i := reducerange(h2, uint32(len(b)))
+	return &b[i]
 }
 
 // reducerange maps i to an integer in the range [0,n).

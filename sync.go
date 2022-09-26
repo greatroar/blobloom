@@ -43,17 +43,23 @@ type SyncFilter struct {
 // single hash passed in by the client. It is silently increased to two if
 // a lower value is given.
 func NewSync(nbits uint64, nhashes int) *SyncFilter {
-	return (*SyncFilter)(New(nbits, nhashes))
+	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
+
+	return &SyncFilter{
+		b: make([]block, nbits/BlockBits),
+		k: nhashes,
+	}
+
 }
 
 // Add insert a key with hash value h into f.
 func (f *SyncFilter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := (*Filter)(f).getblock(h2)
+	b := getblock(f.b, h2)
 
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
-		b.setbitAtomic(h1)
+		setbitAtomic(b, h1)
 	}
 }
 
@@ -72,7 +78,7 @@ func (f *SyncFilter) Add(h uint64) {
 // before the concurrent updates started and what is returned
 // after the updates complete.
 func (f *SyncFilter) Cardinality() float64 {
-	return (*Filter)(f).cardinality(onescountAtomic)
+	return cardinality(f.k, f.b, onescountAtomic)
 }
 
 // Empty reports whether f contains no keys.
@@ -104,11 +110,11 @@ func (f *SyncFilter) Fill() {
 // It may return a false positive.
 func (f *SyncFilter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := (*Filter)(f).getblock(h2)
+	b := getblock(f.b, h2)
 
 	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
-		if !b.getbitAtomic(h1) {
+		if !getbitAtomic(b, h1) {
 			return false
 		}
 	}
@@ -116,14 +122,14 @@ func (f *SyncFilter) Has(h uint64) bool {
 }
 
 // getbitAtomic reports whether bit (i modulo BlockBits) is set.
-func (b *block) getbitAtomic(i uint32) bool {
+func getbitAtomic(b *block, i uint32) bool {
 	bit := uint32(1) << (i % wordSize)
 	x := atomic.LoadUint32(&(*b)[(i/wordSize)%blockWords])
 	return x&bit != 0
 }
 
 // setbit sets bit (i modulo BlockBits) of b, atomically.
-func (b *block) setbitAtomic(i uint32) {
+func setbitAtomic(b *block, i uint32) {
 	bit := uint32(1) << (i % wordSize)
 	p := &(*b)[(i/wordSize)%blockWords]
 
