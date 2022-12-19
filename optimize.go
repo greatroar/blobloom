@@ -186,7 +186,7 @@ func fpRate(c, k float64) (p float64, iter int) {
 // FPRate computes an estimate of f's false positive rate after nkeys distinct
 // keys have been added.
 func (f *Filter) FPRate(nkeys uint64) float64 {
-	return FPRate(nkeys, f.NumBits(), f.k)
+	return FPRate(nkeys, f.NumBits(), f.K)
 }
 
 // Log of the FPR of a single block, FPR = (1 - exp(-k/c))^k.

@@ -75,9 +75,9 @@ func BenchmarkAddSync16MB(b *testing.B)  { benchmarkAddSync(b, 1<<27) }
 
 func BenchmarkCardinalityDense(b *testing.B) {
 	f := New(1<<20, 2)
-	for i := range f.b {
-		for j := range f.b[i] {
-			f.b[i][j] = rand.Uint32()
+	for i := range f.B {
+		for j := range f.B[i] {
+			f.B[i][j] = rand.Uint32()
 		}
 	}
 
@@ -90,9 +90,9 @@ func BenchmarkCardinalityDense(b *testing.B) {
 
 func BenchmarkCardinalitySparse(b *testing.B) {
 	f := New(1<<20, 2)
-	for i := 0; i < len(f.b); i += 2 {
+	for i := 0; i < len(f.B); i += 2 {
 		for _, j := range []int{4, 8, 13} {
-			f.b[i][j] = rand.Uint32()
+			f.B[i][j] = rand.Uint32()
 		}
 	}
 

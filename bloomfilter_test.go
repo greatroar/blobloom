@@ -86,7 +86,7 @@ func TestUse(t *testing.T) {
 	}
 
 	t.Logf("k = %d; m/n = %d/%d = %.3f",
-		f.k, f.NumBits(), n, float64(f.NumBits())/n)
+		f.K, f.NumBits(), n, float64(f.NumBits())/n)
 
 	// Generate random hash values for n keys. Pretend the keys are all distinct,
 	// even if the hashes are not.
@@ -208,9 +208,9 @@ func TestCardinalityFull(t *testing.T) {
 	t.Parallel()
 
 	f := New(BlockBits, 2)
-	for i := range f.b {
-		for j := range f.b[i] {
-			f.b[i][j] = ^uint32(0)
+	for i := range f.B {
+		for j := range f.B[i] {
+			f.B[i][j] = ^uint32(0)
 		}
 	}
 
@@ -260,7 +260,7 @@ func TestIntersect(t *testing.T) {
 	t.Logf("FPR = %f", actualFPR)
 
 	assert.Panics(t, func() { f.Intersect(New(f.NumBits(), 9)) })
-	assert.Panics(t, func() { f.Union(New(n+BlockBits, f.k)) })
+	assert.Panics(t, func() { f.Union(New(n+BlockBits, f.K)) })
 }
 
 func TestUnion(t *testing.T) {

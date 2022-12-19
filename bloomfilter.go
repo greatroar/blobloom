@@ -51,8 +51,8 @@ const MaxBits = BlockBits << 32 // 256GiB.
 
 // A Filter is a blocked Bloom filter.
 type Filter struct {
-	b []block // Shards.
-	k int     // Number of hash functions required.
+	B []block // Shards.
+	K int     // Number of hash functions required.
 }
 
 // New constructs a Bloom filter with given numbers of bits and hash functions.
@@ -67,8 +67,8 @@ func New(nbits uint64, nhashes int) *Filter {
 	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
 
 	return &Filter{
-		b: make([]block, nbits/BlockBits),
-		k: nhashes,
+		B: make([]block, nbits/BlockBits),
+		K: nhashes,
 	}
 }
 
@@ -94,9 +94,9 @@ func fixBitsAndHashes(nbits uint64, nhashes int) (uint64, int) {
 // Add insert a key with hash value h into f.
 func (f *Filter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := getblock(f.b, h2)
+	b := getblock(f.B, h2)
 
-	for i := 1; i < f.k; i++ {
+	for i := 1; i < f.K; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		b.setbit(h1)
 	}
@@ -118,7 +118,7 @@ const log1minus1divBlockbits = -0.0019550348358033505576274922418668121377
 // and Nejdl, summed over the blocks
 // (https://www.win.tue.nl/~opapapetrou/papers/Bloomfilters-DAPD.pdf).
 func (f *Filter) Cardinality() float64 {
-	return cardinality(f.k, f.b, onescount)
+	return cardinality(f.K, f.B, onescount)
 }
 
 func cardinality(nhashes int, b []block, onescount func(*block) int) float64 {
@@ -143,15 +143,15 @@ func cardinality(nhashes int, b []block, onescount func(*block) int) float64 {
 
 // Clear resets f to its empty state.
 func (f *Filter) Clear() {
-	for i := 0; i < len(f.b); i++ {
-		f.b[i] = block{}
+	for i := 0; i < len(f.B); i++ {
+		f.B[i] = block{}
 	}
 }
 
 // Empty reports whether f contains no keys.
 func (f *Filter) Empty() bool {
-	for i := 0; i < len(f.b); i++ {
-		if f.b[i] != (block{}) {
+	for i := 0; i < len(f.B); i++ {
+		if f.B[i] != (block{}) {
 			return false
 		}
 	}
@@ -161,9 +161,9 @@ func (f *Filter) Empty() bool {
 // Fill set f to a completely full filter.
 // After Fill, Has returns true for any key.
 func (f *Filter) Fill() {
-	for i := 0; i < len(f.b); i++ {
+	for i := 0; i < len(f.B); i++ {
 		for j := 0; j < blockWords; j++ {
-			f.b[i][j] = ^uint32(0)
+			f.B[i][j] = ^uint32(0)
 		}
 	}
 }
@@ -172,9 +172,9 @@ func (f *Filter) Fill() {
 // It may return a false positive.
 func (f *Filter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := getblock(f.b, h2)
+	b := getblock(f.B, h2)
 
-	for i := 1; i < f.k; i++ {
+	for i := 1; i < f.K; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		if !b.getbit(h1) {
 			return false
@@ -194,14 +194,14 @@ func doublehash(h1, h2 uint32, i int) (uint32, uint32) {
 
 // NumBits returns the number of bits of f.
 func (f *Filter) NumBits() uint64 {
-	return BlockBits * uint64(len(f.b))
+	return BlockBits * uint64(len(f.B))
 }
 
 func checkBinop(f, g *Filter) {
-	if len(f.b) != len(g.b) {
+	if len(f.B) != len(g.B) {
 		panic("Bloom filters do not have the same number of bits")
 	}
-	if f.k != g.k {
+	if f.K != g.K {
 		panic("Bloom filters do not have the same number of hash functions")
 	}
 }
