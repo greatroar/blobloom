@@ -321,7 +321,7 @@ func TestUnionSmall(t *testing.T) {
 func TestBlockLayout(t *testing.T) {
 	t.Parallel()
 
-	var b block
+	var b Block
 	b.setbit(0)
 	b.setbit(1)
 	b.setbit(111)

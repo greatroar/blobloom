@@ -104,7 +104,7 @@ func BenchmarkCardinalitySparse(b *testing.B) {
 }
 
 func BenchmarkOnescount(b *testing.B) {
-	var blk block
+	var blk Block
 	for i := range blk {
 		blk[i] = rand.Uint32()
 	}
