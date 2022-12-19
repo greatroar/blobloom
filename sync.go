@@ -14,7 +14,11 @@
 
 package blobloom
 
-import "sync/atomic"
+import (
+	"encoding/binary"
+	"io"
+	"sync/atomic"
+)
 
 // A SyncFilter is a Bloom filter that can be accessed and updated
 // by multiple goroutines concurrently.
@@ -30,8 +34,8 @@ import "sync/atomic"
 // but is implemented much more efficiently.
 // See the method descriptions for exceptions to the previous rule.
 type SyncFilter struct {
-	B []block // Shards.
-	K int     // Number of hash functions required.
+	b []block // Shards.
+	k int     // Number of hash functions required.
 }
 
 // NewSync constructs a Bloom filter with given numbers of bits and hash functions.
@@ -46,8 +50,8 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
 
 	return &SyncFilter{
-		B: make([]block, nbits/BlockBits),
-		K: nhashes,
+		b: make([]block, nbits/BlockBits),
+		k: nhashes,
 	}
 
 }
@@ -55,9 +59,9 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 // Add insert a key with hash value h into f.
 func (f *SyncFilter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := getblock(f.B, h2)
+	b := getblock(f.b, h2)
 
-	for i := 1; i < f.K; i++ {
+	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		setbitAtomic(b, h1)
 	}
@@ -78,7 +82,7 @@ func (f *SyncFilter) Add(h uint64) {
 // before the concurrent updates started and what is returned
 // after the updates complete.
 func (f *SyncFilter) Cardinality() float64 {
-	return cardinality(f.K, f.B, onescountAtomic)
+	return cardinality(f.k, f.b, onescountAtomic)
 }
 
 // Empty reports whether f contains no keys.
@@ -86,9 +90,9 @@ func (f *SyncFilter) Cardinality() float64 {
 // If other goroutines are concurrently adding keys,
 // Empty may return a false positive.
 func (f *SyncFilter) Empty() bool {
-	for i := 0; i < len(f.B); i++ {
+	for i := 0; i < len(f.b); i++ {
 		for j := 0; j < blockWords; j++ {
-			if atomic.LoadUint32(&f.B[i][j]) != 0 {
+			if atomic.LoadUint32(&f.b[i][j]) != 0 {
 				return false
 			}
 		}
@@ -99,9 +103,9 @@ func (f *SyncFilter) Empty() bool {
 // Fill sets f to a completely full filter.
 // After Fill, Has returns true for any key.
 func (f *SyncFilter) Fill() {
-	for i := 0; i < len(f.B); i++ {
+	for i := 0; i < len(f.b); i++ {
 		for j := 0; j < blockWords; j++ {
-			atomic.StoreUint32(&f.B[i][j], ^uint32(0))
+			atomic.StoreUint32(&f.b[i][j], ^uint32(0))
 		}
 	}
 }
@@ -110,9 +114,9 @@ func (f *SyncFilter) Fill() {
 // It may return a false positive.
 func (f *SyncFilter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := getblock(f.B, h2)
+	b := getblock(f.b, h2)
 
-	for i := 1; i < f.K; i++ {
+	for i := 1; i < f.k; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		if !getbitAtomic(b, h1) {
 			return false
@@ -142,4 +146,73 @@ func setbitAtomic(b *block, i uint32) {
 		}
 		atomic.CompareAndSwapUint32(p, old, old|bit)
 	}
+}
+
+// WriteTo writes a binary representation of the BloomFilter to an i/o stream
+func (f *SyncFilter) Write(stream io.Writer) error {
+	err := binary.Write(stream, binary.BigEndian, int64(f.k))
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(stream, binary.BigEndian, int64(len(f.b)))
+	if err != nil {
+		return err
+	}
+
+	for _, block := range f.b {
+		for _, val := range block {
+			err = binary.Write(stream, binary.BigEndian, val)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// ReadFrom reads a binary representation of the BloomFilter (such as might
+// have been written by WriteTo()) from an i/o stream.
+func Read(stream io.Reader) (*SyncFilter, error) {
+	var k, l int64
+	err := binary.Read(stream, binary.BigEndian, &k)
+	if err != nil {
+		return nil, err
+	}
+
+	err = binary.Read(stream, binary.BigEndian, &l)
+	if err != nil {
+		return nil, err
+	}
+
+	b := make([]block, 0)
+	for index := 0; index < int(l); index++ {
+		block := block{}
+		for blockIndex := 0; blockIndex < blockWords; blockIndex++ {
+			var temp uint32
+			err = binary.Read(stream, binary.BigEndian, &temp)
+			block[blockIndex] = temp
+			if err != nil {
+				return nil, err
+			}
+		}
+		b = append(b, block)
+	}
+	return &SyncFilter{
+		k: int(k),
+		b: b,
+	}, nil
+}
+
+func (f *SyncFilter) Equals(f1 *SyncFilter) bool {
+	if f1.k != f.k || len(f1.b) != len(f.b) {
+		return false
+	}
+
+	for index, val := range f1.b {
+		if val != f.b[index] {
+			return false
+		}
+	}
+	return true
 }

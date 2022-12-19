@@ -50,7 +50,7 @@ func TestSync(t *testing.T) {
 	check := func(f *SyncFilter) {
 		t.Helper()
 
-		assert.Equal(t, ref.B, f.B)
+		assert.Equal(t, ref.b, f.b)
 		assert.False(t, f.Empty())
 
 		for i := 0; i < 2e4; i++ {
