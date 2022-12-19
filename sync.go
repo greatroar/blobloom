@@ -30,8 +30,8 @@ import "sync/atomic"
 // but is implemented much more efficiently.
 // See the method descriptions for exceptions to the previous rule.
 type SyncFilter struct {
-	b []block // Shards.
-	k int     // Number of hash functions required.
+	B []block // Shards.
+	K int     // Number of hash functions required.
 }
 
 // NewSync constructs a Bloom filter with given numbers of bits and hash functions.
@@ -46,8 +46,8 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
 
 	return &SyncFilter{
-		b: make([]block, nbits/BlockBits),
-		k: nhashes,
+		B: make([]block, nbits/BlockBits),
+		K: nhashes,
 	}
 
 }
@@ -55,9 +55,9 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 // Add insert a key with hash value h into f.
 func (f *SyncFilter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := getblock(f.b, h2)
+	b := getblock(f.B, h2)
 
-	for i := 1; i < f.k; i++ {
+	for i := 1; i < f.K; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		setbitAtomic(b, h1)
 	}
@@ -78,7 +78,7 @@ func (f *SyncFilter) Add(h uint64) {
 // before the concurrent updates started and what is returned
 // after the updates complete.
 func (f *SyncFilter) Cardinality() float64 {
-	return cardinality(f.k, f.b, onescountAtomic)
+	return cardinality(f.K, f.B, onescountAtomic)
 }
 
 // Empty reports whether f contains no keys.
@@ -86,9 +86,9 @@ func (f *SyncFilter) Cardinality() float64 {
 // If other goroutines are concurrently adding keys,
 // Empty may return a false positive.
 func (f *SyncFilter) Empty() bool {
-	for i := 0; i < len(f.b); i++ {
+	for i := 0; i < len(f.B); i++ {
 		for j := 0; j < blockWords; j++ {
-			if atomic.LoadUint32(&f.b[i][j]) != 0 {
+			if atomic.LoadUint32(&f.B[i][j]) != 0 {
 				return false
 			}
 		}
@@ -99,9 +99,9 @@ func (f *SyncFilter) Empty() bool {
 // Fill sets f to a completely full filter.
 // After Fill, Has returns true for any key.
 func (f *SyncFilter) Fill() {
-	for i := 0; i < len(f.b); i++ {
+	for i := 0; i < len(f.B); i++ {
 		for j := 0; j < blockWords; j++ {
-			atomic.StoreUint32(&f.b[i][j], ^uint32(0))
+			atomic.StoreUint32(&f.B[i][j], ^uint32(0))
 		}
 	}
 }
@@ -110,9 +110,9 @@ func (f *SyncFilter) Fill() {
 // It may return a false positive.
 func (f *SyncFilter) Has(h uint64) bool {
 	h1, h2 := uint32(h>>32), uint32(h)
-	b := getblock(f.b, h2)
+	b := getblock(f.B, h2)
 
-	for i := 1; i < f.k; i++ {
+	for i := 1; i < f.K; i++ {
 		h1, h2 = doublehash(h1, h2, i)
 		if !getbitAtomic(b, h1) {
 			return false
