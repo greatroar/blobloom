@@ -28,7 +28,7 @@ import (
 type block64 [BlockBits / 64]uint64
 
 func (f *Filter) intersect(g *Filter) {
-	a, b := f.B, g.B
+	a, b := f.b, g.b
 	for len(a) >= 2 && len(b) >= 2 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
 		q := (*block64)(unsafe.Pointer(&b[0]))
@@ -73,7 +73,7 @@ func (f *Filter) intersect(g *Filter) {
 }
 
 func (f *Filter) union(g *Filter) {
-	a, b := f.B, g.B
+	a, b := f.b, g.b
 	for len(a) >= 2 && len(b) >= 2 {
 		p := (*block64)(unsafe.Pointer(&a[0]))
 		q := (*block64)(unsafe.Pointer(&b[0]))
@@ -117,7 +117,7 @@ func (f *Filter) union(g *Filter) {
 	}
 }
 
-func onescount(b *Block) (n int) {
+func onescount(b *block) (n int) {
 	p := (*block64)(unsafe.Pointer(&b[0]))
 
 	n += bits.OnesCount64(p[0])
@@ -132,7 +132,7 @@ func onescount(b *Block) (n int) {
 	return n
 }
 
-func onescountAtomic(b *Block) (n int) {
+func onescountAtomic(b *block) (n int) {
 	p := (*block64)(unsafe.Pointer(&b[0]))
 
 	n += bits.OnesCount64(atomic.LoadUint64(&p[0]))

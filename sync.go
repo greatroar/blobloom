@@ -30,7 +30,7 @@ import "sync/atomic"
 // but is implemented much more efficiently.
 // See the method descriptions for exceptions to the previous rule.
 type SyncFilter struct {
-	B []Block // Shards.
+	B []block // Shards.
 	K int     // Number of hash functions required.
 }
 
@@ -46,7 +46,7 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
 
 	return &SyncFilter{
-		B: make([]Block, nbits/BlockBits),
+		B: make([]block, nbits/BlockBits),
 		K: nhashes,
 	}
 
@@ -122,14 +122,14 @@ func (f *SyncFilter) Has(h uint64) bool {
 }
 
 // getbitAtomic reports whether bit (i modulo BlockBits) is set.
-func getbitAtomic(b *Block, i uint32) bool {
+func getbitAtomic(b *block, i uint32) bool {
 	bit := uint32(1) << (i % wordSize)
 	x := atomic.LoadUint32(&(*b)[(i/wordSize)%blockWords])
 	return x&bit != 0
 }
 
 // setbit sets bit (i modulo BlockBits) of b, atomically.
-func setbitAtomic(b *Block, i uint32) {
+func setbitAtomic(b *block, i uint32) {
 	bit := uint32(1) << (i % wordSize)
 	p := &(*b)[(i/wordSize)%blockWords]
 

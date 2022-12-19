@@ -23,18 +23,18 @@ import (
 )
 
 func (f *Filter) intersect(g *Filter) {
-	for i := range f.B {
-		f.B[i].intersect(&g.B[i])
+	for i := range f.b {
+		f.b[i].intersect(&g.b[i])
 	}
 }
 
 func (f *Filter) union(g *Filter) {
-	for i := range f.B {
-		f.B[i].union(&g.B[i])
+	for i := range f.b {
+		f.b[i].union(&g.b[i])
 	}
 }
 
-func (b *Block) intersect(c *Block) {
+func (b *block) intersect(c *block) {
 	b[0] &= c[0]
 	b[1] &= c[1]
 	b[2] &= c[2]
@@ -53,7 +53,7 @@ func (b *Block) intersect(c *Block) {
 	b[15] &= c[15]
 }
 
-func (b *Block) union(c *Block) {
+func (b *block) union(c *block) {
 	b[0] |= c[0]
 	b[1] |= c[1]
 	b[2] |= c[2]
@@ -72,7 +72,7 @@ func (b *Block) union(c *Block) {
 	b[15] |= c[15]
 }
 
-func onescount(b *Block) (n int) {
+func onescount(b *block) (n int) {
 	n += bits.OnesCount32(b[0])
 	n += bits.OnesCount32(b[1])
 	n += bits.OnesCount32(b[2])
@@ -93,7 +93,7 @@ func onescount(b *Block) (n int) {
 	return n
 }
 
-func onescountAtomic(b *Block) (n int) {
+func onescountAtomic(b *block) (n int) {
 	n += bits.OnesCount32(atomic.LoadUint32(&b[0]))
 	n += bits.OnesCount32(atomic.LoadUint32(&b[1]))
 	n += bits.OnesCount32(atomic.LoadUint32(&b[2]))

@@ -26,7 +26,7 @@
 // Compared to standard Bloom filters, blocked Bloom filters use the CPU
 // cache more efficiently. A blocked Bloom filter is an array of ordinary
 // Bloom filters of fixed size BlockBits (the blocks). The lower half of the
-// hash selects the Block to use.
+// hash selects the block to use.
 //
 // To achieve the same false positive rate (FPR) as a standard Bloom filter,
 // a blocked Bloom filter requires more memory. For an FPR of at most 2e-6
@@ -39,7 +39,7 @@ package blobloom
 
 import "math"
 
-// BlockBits is the number of bits per Block and the minimum number of bits
+// BlockBits is the number of bits per block and the minimum number of bits
 // in a Filter.
 //
 // The value of this constant is chosen to match the L1 cache line size
@@ -51,7 +51,7 @@ const MaxBits = BlockBits << 32 // 256GiB.
 
 // A Filter is a blocked Bloom filter.
 type Filter struct {
-	B []Block // Shards.
+	B []block // Shards.
 	K int     // Number of hash functions required.
 }
 
@@ -67,7 +67,7 @@ func New(nbits uint64, nhashes int) *Filter {
 	nbits, nhashes = fixBitsAndHashes(nbits, nhashes)
 
 	return &Filter{
-		B: make([]Block, nbits/BlockBits),
+		B: make([]block, nbits/BlockBits),
 		K: nhashes,
 	}
 }
@@ -121,7 +121,7 @@ func (f *Filter) Cardinality() float64 {
 	return cardinality(f.K, f.B, onescount)
 }
 
-func cardinality(nhashes int, b []Block, onescount func(*Block) int) float64 {
+func cardinality(nhashes int, b []block, onescount func(*block) int) float64 {
 	k := float64(nhashes - 1)
 
 	// The probability of some bit not being set in a single insertion is
@@ -144,14 +144,14 @@ func cardinality(nhashes int, b []Block, onescount func(*Block) int) float64 {
 // Clear resets f to its empty state.
 func (f *Filter) Clear() {
 	for i := 0; i < len(f.B); i++ {
-		f.B[i] = Block{}
+		f.B[i] = block{}
 	}
 }
 
 // Empty reports whether f contains no keys.
 func (f *Filter) Empty() bool {
 	for i := 0; i < len(f.B); i++ {
-		if f.B[i] != (Block{}) {
+		if f.B[i] != (block{}) {
 			return false
 		}
 	}
@@ -237,10 +237,10 @@ const (
 	blockWords = BlockBits / wordSize
 )
 
-// A Block is a fixed-size Bloom filter, used as a shard of a Filter.
-type Block [blockWords]uint32
+// A block is a fixed-size Bloom filter, used as a shard of a Filter.
+type block [blockWords]uint32
 
-func getblock(b []Block, h2 uint32) *Block {
+func getblock(b []block, h2 uint32) *block {
 	i := reducerange(h2, uint32(len(b)))
 	return &b[i]
 }
@@ -252,14 +252,14 @@ func reducerange(i, n uint32) uint32 {
 }
 
 // getbit reports whether bit (i modulo BlockBits) is set.
-func (b *Block) getbit(i uint32) bool {
+func (b *block) getbit(i uint32) bool {
 	bit := uint32(1) << (i % wordSize)
 	x := (*b)[(i/wordSize)%blockWords] & bit
 	return x != 0
 }
 
 // setbit sets bit (i modulo BlockBits) of b.
-func (b *Block) setbit(i uint32) {
+func (b *block) setbit(i uint32) {
 	bit := uint32(1) << (i % wordSize)
 	(*b)[(i/wordSize)%blockWords] |= bit
 }
