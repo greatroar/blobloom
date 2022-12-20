@@ -336,6 +336,31 @@ func TestBlockLayout(t *testing.T) {
 	assert.Equal(t, expect, hex.EncodeToString(h.Sum(nil)))
 }
 
+func TestEquals(t *testing.T) {
+	const n uint64 = 1e4
+	f := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
+	f1 := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
+	f2 := NewOptimized(Config{Capacity: 2 * n, FPRate: 1e-3})
+
+	r := rand.New(rand.NewSource(0xb1007))
+	hashes := make([]uint64, n)
+	for i := range hashes {
+		hashes[i] = r.Uint64()
+	}
+
+	for _, h := range hashes {
+		f.Add(h)
+		f1.Add(h)
+		f2.Add(h)
+	}
+
+	assert.Equal(t, true, f1.Equals(f))
+	assert.Equal(t, false, f2.Equals(f))
+	assert.Equal(t, false, f2.Equals(f1))
+}
+
+// The test executes write, bollowed by the read
+// It validates if the enoding/decoding of a filter is correct
 func TestReadWrite(t *testing.T) {
 	const n uint64 = 1e4
 	f := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
