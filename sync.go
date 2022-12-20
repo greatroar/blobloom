@@ -56,6 +56,39 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 
 }
 
+// ReadSync reads a binary representation of the BloomFilter (written by Write()) from an i/o stream
+// Returns a SyncFilter
+func ReadSync(stream io.Reader) (*SyncFilter, error) {
+	var k, l int64
+	err := binary.Read(stream, binary.BigEndian, &k)
+	if err != nil {
+		return nil, err
+	}
+
+	err = binary.Read(stream, binary.BigEndian, &l)
+	if err != nil {
+		return nil, err
+	}
+
+	b := make([]block, 0)
+	for i := 0; i < int(l); i++ {
+		block := block{}
+		for j := 0; j < blockWords; j++ {
+			var temp uint32
+			err = binary.Read(stream, binary.BigEndian, &temp)
+			block[j] = temp
+			if err != nil {
+				return nil, err
+			}
+		}
+		b = append(b, block)
+	}
+	return &SyncFilter{
+		k: int(k),
+		b: b,
+	}, nil
+}
+
 // Add insert a key with hash value h into f.
 func (f *SyncFilter) Add(h uint64) {
 	h1, h2 := uint32(h>>32), uint32(h)
@@ -149,6 +182,8 @@ func setbitAtomic(b *block, i uint32) {
 }
 
 // Write writes a binary representation of the BloomFilter to an i/o stream
+// If other goroutines are concurrently adding keys,
+// Write may dump a false state to the stream
 func (f *SyncFilter) Write(stream io.Writer) error {
 	err := binary.Write(stream, binary.BigEndian, int64(f.k))
 	if err != nil {
@@ -160,8 +195,9 @@ func (f *SyncFilter) Write(stream io.Writer) error {
 		return err
 	}
 
-	for _, block := range f.b {
-		for _, val := range block {
+	for i := range f.b {
+		for j := 0; j < blockWords; j++ {
+			val := atomic.LoadUint32(&f.b[i][j])
 			err = binary.Write(stream, binary.BigEndian, val)
 			if err != nil {
 				return err
@@ -171,47 +207,20 @@ func (f *SyncFilter) Write(stream io.Writer) error {
 	return nil
 }
 
-// Read reads a binary representation of the BloomFilter (written by Write()) from an i/o stream
-func Read(stream io.Reader) (*SyncFilter, error) {
-	var k, l int64
-	err := binary.Read(stream, binary.BigEndian, &k)
-	if err != nil {
-		return nil, err
-	}
-
-	err = binary.Read(stream, binary.BigEndian, &l)
-	if err != nil {
-		return nil, err
-	}
-
-	b := make([]block, 0)
-	for index := 0; index < int(l); index++ {
-		block := block{}
-		for blockIndex := 0; blockIndex < blockWords; blockIndex++ {
-			var temp uint32
-			err = binary.Read(stream, binary.BigEndian, &temp)
-			block[blockIndex] = temp
-			if err != nil {
-				return nil, err
-			}
-		}
-		b = append(b, block)
-	}
-	return &SyncFilter{
-		k: int(k),
-		b: b,
-	}, nil
-}
-
-// Equals compares two filters and returns true if they are equak
+// Equals - compares two filters and returns true if they are equal
+// If other goroutines are concurrently adding keys,
+// Equals may return an incorrect response
 func (f *SyncFilter) Equals(f1 *SyncFilter) bool {
 	if f1.k != f.k || len(f1.b) != len(f.b) {
 		return false
 	}
-
-	for index, val := range f1.b {
-		if val != f.b[index] {
-			return false
+	for i := range f1.b {
+		for j := 0; j < blockWords; j++ {
+			val := atomic.LoadUint32(&f.b[i][j])
+			val1 := atomic.LoadUint32(&f1.b[i][j])
+			if val != val1 {
+				return false
+			}
 		}
 	}
 	return true

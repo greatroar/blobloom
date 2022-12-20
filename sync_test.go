@@ -15,6 +15,7 @@
 package blobloom
 
 import (
+	"bytes"
 	"math"
 	"math/rand"
 	"sync"
@@ -58,6 +59,16 @@ func TestSync(t *testing.T) {
 			assert.Equal(t, ref.Has(h), f.Has(h))
 		}
 		assert.Equal(t, card, f.Cardinality())
+
+		// Write the filter
+		var b bytes.Buffer
+		err := f.Write(&b)
+		assert.Equal(t, err, nil)
+
+		// Read the filter
+		f1, err := ReadSync(&b)
+		assert.Equal(t, err, nil)
+		assert.Equal(t, true, f1.Equals(f))
 	}
 
 	t.Run("all hashes", func(t *testing.T) {

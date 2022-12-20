@@ -37,7 +37,11 @@
 // https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
-import "math"
+import (
+	"encoding/binary"
+	"io"
+	"math"
+)
 
 // BlockBits is the number of bits per block and the minimum number of bits
 // in a Filter.
@@ -70,6 +74,39 @@ func New(nbits uint64, nhashes int) *Filter {
 		b: make([]block, nbits/BlockBits),
 		k: nhashes,
 	}
+}
+
+// Read reads a binary representation of the BloomFilter (written by Write()) from an i/o stream
+// Returns a Filter
+func Read(stream io.Reader) (*Filter, error) {
+	var k, l int64
+	err := binary.Read(stream, binary.BigEndian, &k)
+	if err != nil {
+		return nil, err
+	}
+
+	err = binary.Read(stream, binary.BigEndian, &l)
+	if err != nil {
+		return nil, err
+	}
+
+	b := make([]block, 0)
+	for i := 0; i < int(l); i++ {
+		block := block{}
+		for j := 0; j < blockWords; j++ {
+			var temp uint32
+			err = binary.Read(stream, binary.BigEndian, &temp)
+			block[j] = temp
+			if err != nil {
+				return nil, err
+			}
+		}
+		b = append(b, block)
+	}
+	return &Filter{
+		k: int(k),
+		b: b,
+	}, nil
 }
 
 func fixBitsAndHashes(nbits uint64, nhashes int) (uint64, int) {
@@ -262,4 +299,40 @@ func (b *block) getbit(i uint32) bool {
 func (b *block) setbit(i uint32) {
 	bit := uint32(1) << (i % wordSize)
 	(*b)[(i/wordSize)%blockWords] |= bit
+}
+
+// Write writes a binary representation of the BloomFilter to an i/o stream
+func (f *Filter) Write(stream io.Writer) error {
+	err := binary.Write(stream, binary.BigEndian, int64(f.k))
+	if err != nil {
+		return err
+	}
+
+	err = binary.Write(stream, binary.BigEndian, int64(len(f.b)))
+	if err != nil {
+		return err
+	}
+
+	for _, block := range f.b {
+		for _, val := range block {
+			err = binary.Write(stream, binary.BigEndian, val)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// Equals - compares two filters and returns true if they are equal
+func (f *Filter) Equals(f1 *Filter) bool {
+	if f1.k != f.k || len(f1.b) != len(f.b) {
+		return false
+	}
+	for index, val := range f1.b {
+		if val != f.b[index] {
+			return false
+		}
+	}
+	return true
 }

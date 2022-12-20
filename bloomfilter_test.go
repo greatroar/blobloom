@@ -15,6 +15,7 @@
 package blobloom
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
@@ -333,4 +334,29 @@ func TestBlockLayout(t *testing.T) {
 	binary.Write(h, binary.LittleEndian, b)
 	expect := "aa7f8c411600fa387f0c10641eab428a7ed2f27a86171ac69f0e2087b2aa9140"
 	assert.Equal(t, expect, hex.EncodeToString(h.Sum(nil)))
+}
+
+func TestReadWrite(t *testing.T) {
+	const n uint64 = 1e4
+	f := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
+
+	r := rand.New(rand.NewSource(0xb1007))
+	hashes := make([]uint64, n)
+	for i := range hashes {
+		hashes[i] = r.Uint64()
+	}
+
+	for _, h := range hashes {
+		f.Add(h)
+	}
+
+	// Write the filter
+	var b bytes.Buffer
+	err := f.Write(&b)
+	assert.Equal(t, err, nil)
+
+	// load the filter
+	f1, err := Read(&b)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, true, f1.Equals(f))
 }
