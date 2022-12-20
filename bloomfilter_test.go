@@ -354,34 +354,64 @@ func TestEquals(t *testing.T) {
 		f2.Add(h)
 	}
 
-	assert.Equal(t, true, f1.Equals(f))
-	assert.Equal(t, false, f2.Equals(f))
-	assert.Equal(t, false, f2.Equals(f1))
+	assert.True(t, f1.Equals(f))
+	assert.False(t, f2.Equals(f))
+	assert.False(t, f2.Equals(f1))
+	for _, k := range hashes {
+		assert.True(t, f.Has(k))
+		assert.True(t, f1.Has(k))
+		assert.True(t, f2.Has(k))
+	}
 }
 
-// The test executes write, bollowed by the read
-// It validates if the enoding/decoding of a filter is correct
-func TestReadWrite(t *testing.T) {
+// Test the write pattern, it writes as
+// 1. k as uint64
+// 2. len(b) uint64
+// 3. b as a sequence of
+// Test of Read pattern is equating the filters
+func TestReadWritePattern(t *testing.T) {
+	// create a filter
 	const n uint64 = 1e4
 	f := NewOptimized(Config{Capacity: n, FPRate: 1e-3})
-
 	r := rand.New(rand.NewSource(0xb1007))
 	hashes := make([]uint64, n)
 	for i := range hashes {
 		hashes[i] = r.Uint64()
 	}
 
-	for _, h := range hashes {
-		f.Add(h)
-	}
-
-	// Write the filter
+	// write the filter to a stream
 	var b bytes.Buffer
 	err := f.Write(&b)
-	assert.Equal(t, err, nil)
+	assert.Nil(t, err)
 
-	// load the filter
+	// number of bytes should be
+	// 8(k) + 8(len(b)) +  4*len(b)*blockWords
+	assert.Equal(t, 16+blockWords*4*len(f.b), b.Len())
+
+	// read the k, i.e. the first 8 bytes
+	// should be f.k
+	assert.Equal(t, f.k, int(binary.BigEndian.Uint64(b.Next(8))))
+
+	// read the len(f.b), i.e. the next 8 bytes
+	// should be len(f.b)
+	assert.Equal(t, len(f.b), int(binary.BigEndian.Uint64(b.Next(8))))
+
+	// Read remaining bytes [4*len(f.b)*blockWords]
+	for i := 0; i < len(f.b); i++ {
+		for j := 0; j < blockWords; j++ {
+			assert.Equal(t, f.b[i][j], uint32(binary.BigEndian.Uint32(b.Next(4))))
+		}
+	}
+
+	// validate buffer is empty after this operation
+	assert.True(t, b.Len() == 0)
+
+	// write the filter to a stream
+	err = f.Write(&b)
+	assert.Nil(t, err)
+
+	// Read from the stream
 	f1, err := Read(&b)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, true, f1.Equals(f))
+	assert.Nil(t, err)
+	assert.True(t, f.Equals(f1))
 }

@@ -79,7 +79,7 @@ func New(nbits uint64, nhashes int) *Filter {
 // Read reads a binary representation of the BloomFilter (written by Write()) from an i/o stream
 // Returns a Filter
 func Read(stream io.Reader) (*Filter, error) {
-	var k, l int64
+	var k, l uint64
 	err := binary.Read(stream, binary.BigEndian, &k)
 	if err != nil {
 		return nil, err
@@ -303,12 +303,12 @@ func (b *block) setbit(i uint32) {
 
 // Write writes a binary representation of the BloomFilter to an i/o stream
 func (f *Filter) Write(stream io.Writer) error {
-	err := binary.Write(stream, binary.BigEndian, int64(f.k))
+	err := binary.Write(stream, binary.BigEndian, uint64(f.k))
 	if err != nil {
 		return err
 	}
 
-	err = binary.Write(stream, binary.BigEndian, int64(len(f.b)))
+	err = binary.Write(stream, binary.BigEndian, uint64(len(f.b)))
 	if err != nil {
 		return err
 	}

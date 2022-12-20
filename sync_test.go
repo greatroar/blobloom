@@ -63,12 +63,12 @@ func TestSync(t *testing.T) {
 		// Write the filter
 		var b bytes.Buffer
 		err := f.Write(&b)
-		assert.Equal(t, err, nil)
+		assert.Nil(t, err)
 
 		// Read the filter
 		f1, err := ReadSync(&b)
-		assert.Equal(t, err, nil)
-		assert.Equal(t, true, f1.Equals(f))
+		assert.Nil(t, err)
+		assert.True(t, f1.Equals(f))
 	}
 
 	t.Run("all hashes", func(t *testing.T) {

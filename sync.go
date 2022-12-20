@@ -59,7 +59,7 @@ func NewSync(nbits uint64, nhashes int) *SyncFilter {
 // ReadSync reads a binary representation of the BloomFilter (written by Write()) from an i/o stream
 // Returns a SyncFilter
 func ReadSync(stream io.Reader) (*SyncFilter, error) {
-	var k, l int64
+	var k, l uint64
 	err := binary.Read(stream, binary.BigEndian, &k)
 	if err != nil {
 		return nil, err
@@ -185,12 +185,12 @@ func setbitAtomic(b *block, i uint32) {
 // If other goroutines are concurrently adding keys,
 // Write may dump a false state to the stream
 func (f *SyncFilter) Write(stream io.Writer) error {
-	err := binary.Write(stream, binary.BigEndian, int64(f.k))
+	err := binary.Write(stream, binary.BigEndian, uint64(f.k))
 	if err != nil {
 		return err
 	}
 
-	err = binary.Write(stream, binary.BigEndian, int64(len(f.b)))
+	err = binary.Write(stream, binary.BigEndian, uint64(len(f.b)))
 	if err != nil {
 		return err
 	}
