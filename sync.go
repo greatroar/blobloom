@@ -148,7 +148,7 @@ func setbitAtomic(b *block, i uint32) {
 	}
 }
 
-// WriteTo writes a binary representation of the BloomFilter to an i/o stream
+// Write writes a binary representation of the BloomFilter to an i/o stream
 func (f *SyncFilter) Write(stream io.Writer) error {
 	err := binary.Write(stream, binary.BigEndian, int64(f.k))
 	if err != nil {
@@ -171,8 +171,7 @@ func (f *SyncFilter) Write(stream io.Writer) error {
 	return nil
 }
 
-// ReadFrom reads a binary representation of the BloomFilter (such as might
-// have been written by WriteTo()) from an i/o stream.
+// Read reads a binary representation of the BloomFilter (written by Write()) from an i/o stream
 func Read(stream io.Reader) (*SyncFilter, error) {
 	var k, l int64
 	err := binary.Read(stream, binary.BigEndian, &k)
@@ -204,6 +203,7 @@ func Read(stream io.Reader) (*SyncFilter, error) {
 	}, nil
 }
 
+// Equals compares two filters and returns true if they are equak
 func (f *SyncFilter) Equals(f1 *SyncFilter) bool {
 	if f1.k != f.k || len(f1.b) != len(f.b) {
 		return false
