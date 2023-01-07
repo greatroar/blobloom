@@ -1,0 +1,51 @@
+name: test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        goversion: [1.16, 1.19]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.goversion }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Test
+        run: go test -bench=. ./...
+      - name: Test nounsafe
+        run: go test -tags nounsafe ./...
+      - name: Test 386
+        run: go test -tags nounsafe ./...
+        env:
+          GOARCH: 386
+      - name: Build benchmarks
+        run: cd benchmarks && go test -c
+
+  test-qemu:
+    strategy:
+      matrix:
+        arch: [arm, arm64]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+      - name: Install QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Test
+        run: go test -bench=. ./...
+        env:
+          GOARCH: ${{ matrix.arch }}
