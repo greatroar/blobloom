@@ -173,6 +173,12 @@ func (l *Loader) Load(f *Filter) (*Filter, error) {
 	return f, nil
 }
 
+// Load sets f to the union of f and the Loader's filter, then returns f.
+// If f is nil, a new SyncFilter of the appropriate size is constructed.
+// Else, LoadSync may run concurrently with other modifications to f.
+//
+// If f is not nil and an error occurs while reading from the Loader,
+// f may end up in an inconsistent state.
 func (l *Loader) LoadSync(f *SyncFilter) (*SyncFilter, error) {
 	if f == nil {
 		nbits := BlockBits * l.nblocks
