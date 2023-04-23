@@ -249,6 +249,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
+github.com/tannerryan/ring v1.1.2 h1:iXayOjqHQOLzuy9GwSKuG3nhWfzQkldMlQivcgIr7gQ=
+github.com/tannerryan/ring v1.1.2/go.mod h1:DkELJEjbZhJBtFKR9Xziwj3HKZnb/knRgljNqp65vH4=
 github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9/go.mod h1:RHkNRtSLfOK7qBTHaeSX1D6BNpI3qw7NTxsmNr4RvN8=
 github.com/tmthrgd/asm v0.0.0-20180106020940-4be3ab5ca701/go.mod h1:eH36fdzMoEurHdB3rmh4o3AGc67+EDT2TGaYzwdqTe4=
 github.com/tmthrgd/atomics v0.0.0-20180217065130-6910de195248/go.mod h1:J2+dTgaX/1g3PkyL6sLBglBWfaLmAp5bQbRhSfKw9XI=

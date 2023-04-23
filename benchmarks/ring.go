@@ -1,4 +1,4 @@
-// Copyright 2020 the Blobloom authors
+// Copyright 2023 the Blobloom authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,33 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !bbloom && !boom && !devopsfaith && !ring && !sync && !willf && !xxh3 && !xxhash
-// +build !bbloom,!boom,!devopsfaith,!ring,!sync,!willf,!xxh3,!xxhash
+//go:build ring
+// +build ring
 
 package benchmarks
 
-import (
-	"encoding/binary"
+import "github.com/tannerryan/ring"
 
-	"github.com/greatroar/blobloom"
-)
-
-type bloomFilter blobloom.Filter
+type bloomFilter ring.Ring
 
 func (f *bloomFilter) Add(hash []byte) {
-	h := binary.BigEndian.Uint64(hash[:8])
-	((*blobloom.Filter)(f)).Add(h)
+	((*ring.Ring)(f)).Add(hash)
 }
 
 func (f *bloomFilter) Has(hash []byte) bool {
-	h := binary.BigEndian.Uint64(hash[:8])
-	return ((*blobloom.Filter)(f)).Has(h)
+	return ((*ring.Ring)(f)).Test(hash)
 }
 
 func newBF(capacity int, fpr float64) *bloomFilter {
-	f := blobloom.NewOptimized(blobloom.Config{
-		Capacity: uint64(capacity),
-		FPRate:   fpr,
-	})
+	f, err := ring.Init(capacity, fpr)
+	if err != nil {
+		panic(err)
+	}
 	return (*bloomFilter)(f)
 }

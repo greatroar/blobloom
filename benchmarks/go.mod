@@ -11,6 +11,7 @@ require (
 	github.com/greatroar/blobloom v0.7.2
 	github.com/ipfs/bbloom v0.0.4
 	github.com/klauspost/cpuid/v2 v2.2.2 // indirect
+	github.com/tannerryan/ring v1.1.2
 	github.com/tmthrgd/atomics v0.0.0-20190904060638-dc7a5fcc7e0d // indirect
 	github.com/tmthrgd/go-bitset v0.0.0-20190904054048-394d9a556c05 // indirect
 	github.com/tmthrgd/go-bitwise v0.0.0-20190904053232-1430ee983fca // indirect
