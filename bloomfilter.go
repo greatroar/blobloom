@@ -399,6 +399,8 @@ func (b *block) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	// fake comment for test
+
 	// URLDecode string
 	buf, err := base64.URLEncoding.DecodeString(s)
 	if err != nil {
