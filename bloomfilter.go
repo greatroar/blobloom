@@ -37,7 +37,9 @@
 // https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
-import "math"
+import (
+	"math"
+)
 
 // BlockBits is the number of bits per block and the minimum number of bits
 // in a Filter.
@@ -195,6 +197,41 @@ func (f *Filter) Has(h uint64) bool {
 		}
 	}
 	return true
+}
+
+func (f *Filter) K() uint {
+	// to do: modify f.k's type to uint
+	return uint(f.k)
+}
+
+// TestLocations returns true if all locations are set in the Filter, false otherwise.
+func (f *Filter) TestLocations(locs []uint64) bool {
+	if len(locs) < 1 {
+		return false
+	}
+
+	b := getblock(f.b, uint32(locs[0]))
+	for i := 1; i < f.k; i++ {
+		if !b.getbit(uint32(locs[i])) {
+			return false
+		}
+	}
+	return true
+}
+
+// Locations returns a list of hash locations representing a data item.
+func Locations(h uint64, k uint) []uint64 {
+	locs := make([]uint64, k)
+
+	h1, h2 := uint32(h>>32), uint32(h)
+	locs[0] = uint64(h2)
+
+	for i := 1; i < int(k); i++ {
+		h1, h2 = doublehash(h1, h2, i)
+		locs[i] = uint64(h1)
+	}
+
+	return locs
 }
 
 // doublehash generates the hash values to use in iteration i of

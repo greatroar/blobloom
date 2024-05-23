@@ -334,3 +334,63 @@ func TestBlockLayout(t *testing.T) {
 	expect := "aa7f8c411600fa387f0c10641eab428a7ed2f27a86171ac69f0e2087b2aa9140"
 	assert.Equal(t, expect, hex.EncodeToString(h.Sum(nil)))
 }
+
+// This test ensures that TestLocations() has same behavior with Has()
+func TestLocations(t *testing.T) {
+	t.Parallel()
+
+	const n = 100000
+
+	// For FPR = .01, n = 100000, the optimal number of bits is 958505.84
+	// for a standard Bloom filter.
+	f := NewOptimized(Config{
+		Capacity: n,
+		FPRate:   .01,
+	})
+	if f.NumBits() < 958506 {
+		t.Fatalf("bloom filter with %d bits too small", f.NumBits())
+	}
+
+	t.Logf("k = %d; m/n = %d/%d = %.3f",
+		f.k, f.NumBits(), n, float64(f.NumBits())/n)
+
+	// Generate random hash values for n keys. Pretend the keys are all distinct,
+	// even if the hashes are not.
+	r := rand.New(rand.NewSource(0xb1007))
+	hashes := make([]uint64, n)
+	for i := range hashes {
+		hashes[i] = r.Uint64()
+	}
+
+	for _, h := range hashes {
+		f.Add(h)
+	}
+
+	for _, h := range hashes {
+		ret1 := f.Has(h)
+		locs := Locations(h, f.K())
+		ret2 := f.TestLocations(locs)
+		assert.Equal(t, ret1, ret2)
+	}
+
+	// Generate some more random hashes to get a sense of the FPR.
+	// Pretend these represent unique keys, distinct from the ones we added.
+	const nTest = 10000
+	fp1 := 0
+	fp2 := 0
+	for i := 0; i < nTest; i++ {
+		h := r.Uint64()
+		if f.Has(h) {
+			fp1++
+		}
+
+		locs := Locations(h, f.K())
+		if f.TestLocations(locs) {
+			fp2++
+		}
+	}
+
+	fpr1 := float64(fp1) / nTest
+	fpr2 := float64(fp2) / nTest
+	assert.Equal(t, fpr1, fpr2)
+}
