@@ -394,3 +394,50 @@ func TestLocations(t *testing.T) {
 	fpr2 := float64(fp2) / nTest
 	assert.Equal(t, fpr1, fpr2)
 }
+
+func TestMarshal(t *testing.T) {
+	t.Parallel()
+
+	const n = 100000
+
+	// For FPR = .01, n = 100000, the optimal number of bits is 958505.84
+	// for a standard Bloom filter.
+	f := NewOptimized(Config{
+		Capacity: n,
+		FPRate:   .01,
+	})
+	if f.NumBits() < 958506 {
+		t.Fatalf("bloom filter with %d bits too small", f.NumBits())
+	}
+
+	t.Logf("k = %d; m/n = %d/%d = %.3f",
+		f.k, f.NumBits(), n, float64(f.NumBits())/n)
+
+	// Generate random hash values for n keys. Pretend the keys are all distinct,
+	// even if the hashes are not.
+	r := rand.New(rand.NewSource(0xb1007))
+	hashes := make([]uint64, n)
+	for i := range hashes {
+		hashes[i] = r.Uint64()
+	}
+
+	for _, h := range hashes {
+		f.Add(h)
+	}
+
+	for _, h := range hashes {
+		ret1 := f.Has(h)
+		assert.True(t, ret1)
+	}
+
+	data, err := f.MarshalJSON()
+	assert.NoError(t, err)
+
+	f2 := &Filter{}
+	f2.UnmarshalJSON(data)
+
+	for _, h := range hashes {
+		ret1 := f.Has(h)
+		assert.True(t, ret1)
+	}
+}
