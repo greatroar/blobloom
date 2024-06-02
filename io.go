@@ -63,6 +63,9 @@ func dump(w io.Writer, b []block, nhashes int, comment string) (n int64, err err
 
 	var buf [64]byte
 	copy(buf[:8], "blobloom")
+	// As documented in the comment for Loader, we store one less than the
+	// number of blocks. This way, we can use the otherwise invalid value 0
+	// and store 2³² blocks instead of at most 2³²-1.
 	binary.LittleEndian.PutUint32(buf[12:], uint32(len(b)-1))
 	binary.LittleEndian.PutUint32(buf[16:], uint32(nhashes))
 	copy(buf[20:], comment)
@@ -121,6 +124,7 @@ func NewLoader(r io.Reader) (*Loader, error) {
 	}
 
 	version := binary.LittleEndian.Uint32(l.buf[8:])
+	// See comment in dump for the +1.
 	l.nblocks = 1 + uint64(binary.LittleEndian.Uint32(l.buf[12:]))
 	l.nhashes = int(binary.LittleEndian.Uint32(l.buf[16:]))
 	comment := l.buf[20:]
