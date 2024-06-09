@@ -3,6 +3,7 @@ module github.com/greatroar/blobloom/benchmarks
 go 1.16
 
 require (
+	github.com/DCSO/bloom v0.2.4
 	github.com/bits-and-blooms/bitset v1.7.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.3.1
 	github.com/cespare/xxhash/v2 v2.2.0

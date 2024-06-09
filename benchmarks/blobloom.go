@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !bbloom && !boom && !devopsfaith && !ring && !sync && !willf && !xxh3 && !xxhash
-// +build !bbloom,!boom,!devopsfaith,!ring,!sync,!willf,!xxh3,!xxhash
+//go:build !bbloom && !boom && !dcso && !devopsfaith && !ring && !sync && !willf && !xxh3 && !xxhash
+// +build !bbloom,!boom,!dcso,!devopsfaith,!ring,!sync,!willf,!xxh3,!xxhash
 
 package benchmarks
 
