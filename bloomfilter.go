@@ -34,7 +34,7 @@
 // is double that of standard Bloom filter.
 //
 // For more details, see the 2010 paper by Putze, Sanders and Singler,
-// https://algo2.iti.kit.edu/documents/cacheefficientbloomfilters-jea.pdf.
+// https://www.cs.amherst.edu/~ccmcgeoch/cs34/papers/cacheefficientbloomfilters-jea.pdf.
 package blobloom
 
 import "math"
