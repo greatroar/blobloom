@@ -3,7 +3,8 @@ Blobloom
 
 A Bloom filter package for Go (golang) with no compile-time dependencies.
 
-This package implements a version of Bloom filters called [blocked Bloom filters](https://www.cs.amherst.edu/~ccmcgeoch/cs34/papers/cacheefficientbloomfilters-jea.pdf),
+This package implements a version of Bloom filters called [blocked Bloom filters](
+https://www.cs.amherst.edu/~ccmcgeoch/cs34/papers/cacheefficientbloomfilters-jea.pdf),
 which get a speed boost from using the CPU cache more efficiently
 than regular Bloom filters.
 
