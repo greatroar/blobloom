@@ -58,6 +58,7 @@ func TestFPRateConvergence(t *testing.T) {
 		{20, 14, 100},
 		{30, 20, 100},
 	} {
+		c := c
 		t.Run(fmt.Sprintf("c=%f,k=%d", c.c, int(c.k)), func(t *testing.T) {
 			t.Parallel()
 
