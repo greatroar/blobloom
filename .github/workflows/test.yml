@@ -9,7 +9,7 @@ jobs:
   test:
     strategy:
       matrix:
-        goversion: [1.16, 1.19, 1.23]
+        goversion: [1.16, 1.19, 1.24]
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: 1.24
       - name: Install QEMU
         uses: docker/setup-qemu-action@v1
       - name: Checkout
