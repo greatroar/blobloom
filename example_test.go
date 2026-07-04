@@ -141,17 +141,13 @@ func ExampleFilter_Cardinality_infinity() {
 	// calls to Add and compute the minimum.
 
 	// This Bloom filter is constructed with too many hash functions
-	// to force +Inf.
-	f := blobloom.New(512, 100)
+	// in order to force +Inf.
+	f := blobloom.New(512, 30)
 	var numAdded int
 
-	add := func(h uint64) {
+	for _, h := range hashes {
 		f.Add(h)
 		numAdded++
-	}
-
-	for _, h := range hashes {
-		add(h)
 	}
 
 	estimate := f.Cardinality()
