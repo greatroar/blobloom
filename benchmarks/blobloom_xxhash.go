@@ -11,7 +11,6 @@
 // limitations under the License.
 
 //go:build xxhash
-// +build xxhash
 
 package benchmarks
 

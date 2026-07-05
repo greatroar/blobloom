@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build !bbloom && !boom && !dcso && !devopsfaith && !ring && !sync && !willf && !xxh3 && !xxhash
-// +build !bbloom,!boom,!dcso,!devopsfaith,!ring,!sync,!willf,!xxh3,!xxhash
 
 package benchmarks
 

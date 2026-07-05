@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build ring
-// +build ring
 
 package benchmarks
 

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build xxh3
-// +build xxh3
 
 package benchmarks
 

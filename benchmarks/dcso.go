@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build dcso
-// +build dcso
 
 package benchmarks
 

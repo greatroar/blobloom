@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build bbloom
-// +build bbloom
 
 package benchmarks
 

@@ -104,7 +104,7 @@ func benchmarkTestNeg(b *testing.B, capacity int, fpr float64) {
 	f := newBF(capacity, fpr)
 
 	h := make([]byte, hashSize)
-	for i := 0; i < capacity; i++ {
+	for range capacity {
 		r.Read(h)
 		f.Add(h)
 	}

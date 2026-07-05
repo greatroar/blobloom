@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build boom
-// +build boom
 
 package benchmarks
 
