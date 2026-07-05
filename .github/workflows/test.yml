@@ -9,7 +9,7 @@ jobs:
   test:
     strategy:
       matrix:
-        goversion: [1.16, 1.20, 1.26]
+        goversion: [1.16, 1.21, 1.26]
     runs-on: ubuntu-latest
 
     steps:
